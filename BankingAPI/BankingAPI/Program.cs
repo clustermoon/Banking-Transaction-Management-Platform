@@ -1,33 +1,43 @@
-
+using BankingAPI.Data;
+using BankingAPI.Infrastructure.Errors;
+using Microsoft.EntityFrameworkCore;
 namespace BankingAPI;
 
-public class Program
+public sealed class Program
 {
-    public static void Main(string[] args)
+    private Program()
+    {
+    }
+
+    public static async Task Main(string[] args)
     {
         var builder = WebApplication.CreateBuilder(args);
 
-        // Add services to the container.
+        var connectionString = builder.Configuration.GetConnectionString("Banking") ?? throw new InvalidOperationException("Connection string 'Banking' is not configured.");
 
+        builder.Services.AddDbContext<BankingDbContext>(options => options.UseSqlServer(connectionString));
         builder.Services.AddControllers();
-        // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-        builder.Services.AddOpenApi();
+        builder.Services.AddProblemDetails();
+        builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
+        //builder.Services.AddHealthChecks().AddDbContextCheck<BankingDbContext>();
+        builder.Services.AddHealthChecks().AddDbContextCheck<BankingDbContext>(
+            customTestQuery: static async (dbContext, cancellationToken) =>
+            {
+                // CanConnectAsync retries connection failures for up to a minute, which makes a
+                // stopped database look like a hung endpoint. A plain query fails fast instead.
+                await dbContext.Database.ExecuteSqlRawAsync("SELECT 1;", cancellationToken);
+                return true;
+            });
 
         var app = builder.Build();
 
-        // Configure the HTTP request pipeline.
-        if (app.Environment.IsDevelopment())
-        {
-            app.MapOpenApi();
-        }
+        await app.MigrateDatabaseIfEnabledAsync();
 
-        app.UseHttpsRedirection();
-
-        app.UseAuthorization();
-
-
+        app.UseExceptionHandler();
+        app.UseStatusCodePages();
+        app.MapHealthChecks("/health/ready");
         app.MapControllers();
 
-        app.Run();
+        await app.RunAsync();
     }
 }
