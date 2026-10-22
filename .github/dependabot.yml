@@ -1,0 +1,25 @@
+version: 2
+updates:
+  - package-ecosystem: "nuget"
+    directories:
+      - "/BankingAPI"
+      - "/BankingClient"
+    schedule:
+      interval: "weekly"
+    groups:
+      nuget-minor-and-patch:
+        update-types: ["minor", "patch"]
+    ignore:
+      # Microsoft.* majors track the target framework; bump them deliberately with the SDK.
+      - dependency-name: "Microsoft.*"
+        update-types: ["version-update:semver-major"]
+
+  - package-ecosystem: "dotnet-sdk"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"

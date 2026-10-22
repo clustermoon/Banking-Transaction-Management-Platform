@@ -6,7 +6,7 @@ This repository was intentionally created using very limited to no external help
 ![SQL Server](https://img.shields.io/badge/SQL_Server-CC2927?logo=microsoftsqlserver&logoColor=white)
 ![EF Core](https://img.shields.io/badge/EF_Core-512BD4?logo=dotnet&logoColor=white)
 ![Docker](https://img.shields.io/badge/Docker-2496ED?logo=docker&logoColor=white)
-[![CI](https://github.com/clustermoon/Banking-Transaction-Management-Platform/actions/workflows/ci.yaml/badge.svg)](https://github.com/clustermoon/Banking-Transaction-Management-Platform/actions/workflows/ci.yaml)
+![CI](https://github.com/clustermoon/Banking-Transaction-Management-Platform/actions/workflows/ci.yml/badge.svg)
 
 ## Highlights
 
@@ -28,24 +28,6 @@ My intention isn't to replicate every feature of a production banking system. I 
 
 A full-stack banking and transaction management platform built with ASP.NET Core, Entity Framework Core, and SQL Server. Customers will manage checking and savings accounts, move money, and review their history, while administrators freeze and close accounts under an audit trail.
 
-<<<<<<< Updated upstream
-
-## Authors
-[David Wommack](https://github.com/clustermoon)
-=======
-## Installation
-
-**Requirements:** [.NET 10 SDK](https://dotnet.microsoft.com/download) (the exact version is pinned in `global.json`), [Docker Desktop](https://www.docker.com/products/docker-desktop/), and Git. Developed on Windows and built on Linux in CI; macOS has not been verified yet.
-
-```bash
-git clone https://github.com/clustermoon/Banking-Transaction-Management-Platform.git
-cd Banking-Transaction-Management-Platform
-docker compose up -d        # wait until `docker compose ps` shows "healthy"
-dotnet tool restore
-dotnet ef database update --project BankingAPI/BankingAPI
-```
->>>>>>> Stashed changes
-
 ## Usage
 
 Start the database and the API:
@@ -60,12 +42,7 @@ Try to tamper with the ledger. The database rejects it with `Msg 51000`:
 docker exec banking-sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P Banking_Dev_Passw0rd -C -d BankingDb -Q "UPDATE dbo.Transactions SET Amount = Amount"
 ```
 
-<<<<<<< Updated upstream
 ## Installation
-=======
-
-If you need to reset the database you can use `down -v`.
->>>>>>> Stashed changes
 
 **Requirements:** [.NET 10 SDK](https://dotnet.microsoft.com/download) (the exact version is pinned in `global.json`), [Docker Desktop](https://www.docker.com/products/docker-desktop/), and Git. Developed on Windows and built on Linux in CI; macOS has not been verified yet.
 
