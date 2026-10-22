@@ -1,0 +1,33 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        solution: [BankingAPI, BankingClient]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+
+      - name: Restore
+        run: dotnet restore ${{ matrix.solution }}/${{ matrix.solution }}.slnx
+
+      - name: Build
+        run: dotnet build ${{ matrix.solution }}/${{ matrix.solution }}.slnx --no-restore -c Release
+
+      - name: Test
+        run: dotnet test ${{ matrix.solution }}/${{ matrix.solution }}.slnx --no-build -c Release
+
+      - name: Verify formatting
+        run: dotnet format ${{ matrix.solution }}/${{ matrix.solution }}.slnx --verify-no-changes
