@@ -1,4 +1,5 @@
 using System.Net;
+
 using BankingAPI.Tests.Infrastructure;
 namespace BankingAPI.Tests.Health;
 

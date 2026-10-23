@@ -1,5 +1,6 @@
 using BankingAPI.Data;
 using BankingAPI.Infrastructure.Errors;
+
 using Microsoft.EntityFrameworkCore;
 
 namespace BankingAPI;

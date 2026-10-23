@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Data.SqlClient;
+
 using Testcontainers.MsSql;
 namespace BankingAPI.Tests.Infrastructure;
 

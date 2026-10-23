@@ -1,33 +1,56 @@
 name: CI
 
 on:
-  push:
-    branches: [main]
   pull_request:
-    branches: [main]
+  push:
+    branches: [ main ]
+
+permissions:
+  contents: read
 
 jobs:
   build-and-test:
+    name: ${{ matrix.name }}
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        solution: [BankingAPI, BankingClient]
+        include:
+          - name: BankingAPI
+            solution: BankingAPI/BankingAPI.slnx
+            run-tests: true
+          - name: BankingClient
+            solution: BankingClient/BankingClient.slnx
+            run-tests: false # Flipped to true when the auth slice adds BankingClient.Tests.
     steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-dotnet@v4
+      - uses: actions/checkout@v5
+      - uses: actions/setup-dotnet@v5
         with:
           global-json-file: global.json
-
       - name: Restore
-        run: dotnet restore ${{ matrix.solution }}/${{ matrix.solution }}.slnx
-
+        run: dotnet restore ${{ matrix.solution }}
       - name: Build
-        run: dotnet build ${{ matrix.solution }}/${{ matrix.solution }}.slnx --no-restore -c Release
-
-      - name: Test
-        run: dotnet test ${{ matrix.solution }}/${{ matrix.solution }}.slnx --no-build -c Release
-
+        run: dotnet build ${{ matrix.solution }} -c Release --no-restore
       - name: Verify formatting
-        run: dotnet format ${{ matrix.solution }}/${{ matrix.solution }}.slnx --verify-no-changes
+        run: dotnet format ${{ matrix.solution }} --verify-no-changes --no-restore
+      - name: Test
+        if: matrix.run-tests
+        run: dotnet test ${{ matrix.solution }} -c Release --no-build
+
+  compose-smoke:
+    name: Docker compose smoke test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: Start the full stack
+        run: docker compose up --build --detach --wait --wait-timeout 180
+      - name: Check the API and client respond
+        run: |
+          curl --fail --silent --show-error http://127.0.0.1:5001/health/ready
+          curl --fail --silent --show-error --output /dev/null http://127.0.0.1:5002/
+      - name: Show logs on failure
+        if: failure()
+        run: docker compose logs
+      - name: Tear down
+        if: always()
+        run: docker compose down --volumes
