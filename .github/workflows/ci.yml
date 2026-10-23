@@ -23,7 +23,7 @@ jobs:
             solution: BankingClient/BankingClient.slnx
             run-tests: false # Flipped to true when the auth slice adds BankingClient.Tests.
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - uses: actions/setup-dotnet@v5
         with:
           global-json-file: global.json
@@ -41,7 +41,7 @@ jobs:
     name: Docker compose smoke test
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - name: Start the full stack
         run: docker compose up --build --detach --wait --wait-timeout 180
       - name: Check the API and client respond
