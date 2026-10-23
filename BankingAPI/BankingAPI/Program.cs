@@ -19,15 +19,13 @@ public sealed class Program
         builder.Services.AddControllers();
         builder.Services.AddProblemDetails();
         builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
-        //builder.Services.AddHealthChecks().AddDbContextCheck<BankingDbContext>();
-        builder.Services.AddHealthChecks().AddDbContextCheck<BankingDbContext>(
-            customTestQuery: static async (dbContext, cancellationToken) =>
-            {
-                // CanConnectAsync retries connection failures for up to a minute, which makes a
-                // stopped database look like a hung endpoint. A plain query fails fast instead.
-                await dbContext.Database.ExecuteSqlRawAsync("SELECT 1;", cancellationToken);
-                return true;
-            });
+        builder.Services.AddHealthChecks().AddDbContextCheck<BankingDbContext>();
+        builder.Services.AddDbContext<BankingDbContext>((serviceProvider, options) =>
+        {
+            var connectionString = serviceProvider.GetRequiredService<IConfiguration>().GetConnectionString("Banking")
+                ?? throw new InvalidOperationException("Connection string 'Banking' is not configured.");
+            options.UseSqlServer(connectionString);
+        });
 
         var app = builder.Build();
 

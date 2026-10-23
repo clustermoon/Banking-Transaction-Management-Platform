@@ -11,7 +11,7 @@ internal static class DatabaseMigrationExtensions
     /// <param name="app"></param>
     /// <returns></returns>
     public static async Task MigrateDatabaseIfEnabledAsync(this WebApplication app)
-    { 
+    {
         if (!app.Configuration.GetValue<bool>("Database:MigrateOnStartup")) { return; }
 
         // Restrict the migrate on startup
