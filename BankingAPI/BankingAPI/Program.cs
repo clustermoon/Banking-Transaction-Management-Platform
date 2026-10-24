@@ -13,8 +13,9 @@ public sealed class Program
 
     public static async Task Main(string[] args)
     {
-        var builder = WebApplication.CreateBuilder(args);
 
+        // DI Ioc Container Configurations
+        var builder = WebApplication.CreateBuilder(args);
         builder.Services.AddDbContext<BankingDbContext>((serviceProvider, options) =>
         {
             var connectionString = serviceProvider.GetRequiredService<IConfiguration>().GetConnectionString("Banking")
@@ -25,16 +26,17 @@ public sealed class Program
         builder.Services.AddProblemDetails();
         builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
         builder.Services.AddHealthChecks().AddDbContextCheck<BankingDbContext>(
-            customTestQuery: static async (dbContext, cancellationToken) =>
-            {
-                // CanConnectAsync retries connection failures for up to a minute, which makes a
-                // stopped database look like a hung endpoint. A plain query fails fast instead.
-                await dbContext.Database.ExecuteSqlRawAsync("SELECT 1;", cancellationToken);
-                return true;
-            });
+        customTestQuery: static async (dbContext, cancellationToken) =>
+        {
+            // CanConnectAsync retries connection failures for up to a minute, which makes a
+            // stopped database look like a hung endpoint. A plain query fails fast instead.
+            await dbContext.Database.ExecuteSqlRawAsync("SELECT 1;", cancellationToken);
+            return true;
+        });
 
+
+        // Middleware Configurations
         var app = builder.Build();
-
         await app.MigrateDatabaseIfEnabledAsync();
 
         app.UseExceptionHandler();
