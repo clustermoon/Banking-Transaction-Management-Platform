@@ -88,6 +88,7 @@ h1, h2 {
 .hero h1 {
     font-size: clamp(2.5rem, 5vw, 4.5rem);
     line-height: 1.1;
+    text-shadow: 0 1px 3px rgba(255, 255, 255, 0.9);
 }
 
 .features {
