@@ -1,4 +1,4 @@
-# Banking & Transaction Management Platform
+# Avenor Banking & Transaction Management Platform
 This repository was intentionally created using very limited to no external help including AI agents or LLMS.
 
 ![C#](https://img.shields.io/badge/C%23-512BD4?logo=dotnet&logoColor=white)

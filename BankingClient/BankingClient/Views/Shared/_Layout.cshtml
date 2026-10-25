@@ -3,25 +3,34 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] · Banking Platform</title>
+    <title>@ViewData["Title"] · Avenor Bank</title>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
 </head>
 <body class="d-flex flex-column min-vh-100">
-    <header>
-        <nav class="navbar navbar-dark bg-dark">
-            <div class="container">
-                <a class="navbar-brand" asp-controller="Home" asp-action="Index">Banking Platform</a>
-            </div>
+    <header class="site-header">
+        <nav class="d-flex flex-wrap align-items-center gap-3 py-3">
+            <a class="brand d-flex align-items-center gap-2 me-auto" asp-controller="Home" asp-action="Index">
+                <img src="~/images/bank_logo.svg" alt="" width="40" height="40" />
+                Avenor
+            </a>
+            <a asp-controller="Home" asp-action="Index">Home</a>
+            <a asp-controller="Home" asp-action="Index" asp-fragment="features">Features</a>
+            <a class="btn btn-outline-light" href="#">Log In</a>
+            <a class="btn btn-primary" href="#">Create Account</a>
         </nav>
     </header>
 
-    <main class="container flex-grow-1 py-4" role="main">
+    <main class="flex-grow-1">
         @RenderBody()
     </main>
 
-    <footer class="border-top py-3 text-body-secondary small">
-        <div class="container">Portfolio demo. Not a real bank, and no real money moves.</div>
+    <footer class="site-footer py-4">
+        <div class="container">
+            <span class="brand">Avenor</span> |
+            <span >©2026 David Womack</span> |
+             Portfolio demo. Not a real bank, and no real money moves.
+        </div>
     </footer>
 </body>
 </html>
