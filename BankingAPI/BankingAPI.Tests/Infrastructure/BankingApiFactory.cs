@@ -16,7 +16,14 @@ public sealed class BankingApiFactory : WebApplicationFactory<Program>, IAsyncLi
         .WithImage("mcr.microsoft.com/mssql/server:2022-latest")
         .Build();
 
-    public async ValueTask InitializeAsync() => await _sqlServer.StartAsync();
+    public async ValueTask InitializeAsync()
+    {
+        await _sqlServer.StartAsync();
+
+        // Build the host now, so its startup migration runs exactly once. Left lazy, parallel
+        // test classes race to create the host and both try to create the database.
+        _ = Server;
+    }
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {

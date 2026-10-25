@@ -1,4 +1,5 @@
 using BankingAPI.Data;
+using BankingAPI.Identity;
 using BankingAPI.Infrastructure.Errors;
 
 using Microsoft.EntityFrameworkCore;
@@ -33,6 +34,7 @@ public sealed class Program
             await dbContext.Database.ExecuteSqlRawAsync("SELECT 1;", cancellationToken);
             return true;
         });
+        builder.Services.AddBankingIdentity();
 
 
         // Middleware Configurations
