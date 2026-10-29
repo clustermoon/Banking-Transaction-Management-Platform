@@ -1,6 +1,7 @@
 using BankingAPI.Data;
 using BankingAPI.Identity;
 using BankingAPI.Infrastructure.Errors;
+using BankingAPI.Infrastructure.OpenApi;
 using BankingAPI.Infrastructure.Validation;
 
 using FluentValidation;
@@ -20,20 +21,30 @@ public sealed class Program
     public static async Task Main(string[] args)
     {
 
-        // DI Ioc Container Configurations
+        // --- DI Ioc Container Configurations ---
         var builder = WebApplication.CreateBuilder(args);
+
+        // Persistence Services
         builder.Services.AddDbContext<BankingDbContext>((serviceProvider, options) =>
         {
             var connectionString = serviceProvider.GetRequiredService<IConfiguration>().GetConnectionString("Banking")
                 ?? throw new InvalidOperationException("Connection string 'Banking' is not configured.");
             options.UseSqlServer(connectionString);
         });
+
+        // Identity and Authentication Services
+        builder.Services.AddSingleton(TimeProvider.System);
+        builder.Services.AddBankingIdentity();
+        builder.Services.AddBankingAuthentication();
+
+        // HTTP Surface
         builder.Services.AddControllers(options => options.Filters.Add<FluentValidationFilter>());
+        builder.Services.AddValidatorsFromAssemblyContaining<Program>(includeInternalTypes: true);
         builder.Services.AddProblemDetails();
         builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
-        builder.Services.AddValidatorsFromAssemblyContaining<Program>(includeInternalTypes: true);
-        builder.Services.AddOpenApi();
+        builder.Services.AddOpenApi(options => options.AddDocumentTransformer<BearerSecuritySchemeTransformer>());
 
+        // Readiness
         builder.Services.AddHealthChecks().AddDbContextCheck<BankingDbContext>(
         customTestQuery: static async (dbContext, cancellationToken) =>
         {
@@ -42,12 +53,20 @@ public sealed class Program
             await dbContext.Database.ExecuteSqlRawAsync("SELECT 1;", cancellationToken);
             return true;
         });
-        builder.Services.AddBankingIdentity();
 
-
-        // Middleware Configurations
+        // --- Middleware Configurations ---
         var app = builder.Build();
+
         await app.MigrateDatabaseIfEnabledAsync();
+
+        app.UseExceptionHandler();
+        app.UseStatusCodePages();
+        app.UseAuthentication();
+        app.UseAuthorization();
+
+        // Docker Health Probe
+        app.MapHealthChecks("/health/ready").AllowAnonymous();
+        app.MapControllers();
 
         // Display UI for the API while in development
         if (app.Environment.IsDevelopment() || app.Environment.IsEnvironment("Demo"))
@@ -55,11 +74,6 @@ public sealed class Program
             app.MapOpenApi();
             app.MapScalarApiReference();
         }
-
-        app.UseExceptionHandler();
-        app.UseStatusCodePages();
-        app.MapHealthChecks("/health/ready");
-        app.MapControllers();
 
         await app.RunAsync();
     }

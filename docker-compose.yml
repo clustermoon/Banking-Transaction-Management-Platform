@@ -25,6 +25,7 @@ services:
         environment:
             ASPNETCORE_ENVIRONMENT: "Demo"
             ConnectionStrings__Banking: "Server=sqlserver,1433;Database=Banking;User Id=sa;Password=${MSSQL_SA_PASSWORD:-Banking_Dev_Only_2026!};TrustServerCertificate=True"
+            Jwt__SigningKey: "${JWT_SIGNING_KEY:-demo-only-signing-key-not-for-production-0123}"
         ports:
             - "127.0.0.1:5001:8080"
         depends_on:

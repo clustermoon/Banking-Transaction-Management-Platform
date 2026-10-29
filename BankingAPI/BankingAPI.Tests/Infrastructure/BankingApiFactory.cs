@@ -36,6 +36,7 @@ public sealed class BankingApiFactory : WebApplicationFactory<Program>, IAsyncLi
         builder.UseEnvironment("Testing");
         builder.UseSetting("ConnectionStrings:Banking", connectionString);
         builder.UseSetting("Database:MigrateOnStartup", "true");
+        builder.UseSetting("Jwt:SigningKey", "test-only-signing-key-0123456789abcdef");
     }
 
     public override async ValueTask DisposeAsync()

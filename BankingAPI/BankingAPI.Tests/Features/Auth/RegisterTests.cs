@@ -16,14 +16,13 @@ public sealed class RegisterTests(BankingApiFactory factory)
 {
     private static readonly Uri RegisterUri = new("/api/auth/register", UriKind.Relative);
 
-    private static string UniqueEmail() => $"user-{Guid.NewGuid():N}@example.test";
-
     [Fact]
     public async Task RegisterCreatesCustomer()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
         using var client = factory.CreateClient();
-        var request = new RegisterRequest(UniqueEmail(), "a-long-enough-password", "Test User");
+        var request = new RegisterRequest(
+            ApiClientExtensions.UniqueEmail(), ApiClientExtensions.TestPassword, "Test User");
 
         using var response = await client.PostAsJsonAsync(RegisterUri, request, cancellationToken);
 
@@ -36,7 +35,7 @@ public sealed class RegisterTests(BankingApiFactory factory)
     }
 
     [Theory]
-    [InlineData("not-an-email", "a-long-enough-password", "Email")]
+    [InlineData("not-an-email", ApiClientExtensions.TestPassword, "Email")]
     [InlineData("valid@example.test", "short", "Password")]
     public async Task RegisterRejectsInvalidInput(string email, string password, string expectedField)
     {
@@ -56,7 +55,8 @@ public sealed class RegisterTests(BankingApiFactory factory)
     {
         var cancellationToken = TestContext.Current.CancellationToken;
         using var client = factory.CreateClient();
-        var request = new RegisterRequest(UniqueEmail(), "a-long-enough-password", "Test User");
+        var request = new RegisterRequest(
+            ApiClientExtensions.UniqueEmail(), ApiClientExtensions.TestPassword, "Test User");
 
         using var first = await client.PostAsJsonAsync(RegisterUri, request, cancellationToken);
         using var second = await client.PostAsJsonAsync(RegisterUri, request, cancellationToken);
