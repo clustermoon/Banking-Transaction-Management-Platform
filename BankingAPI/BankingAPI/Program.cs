@@ -1,8 +1,13 @@
 using BankingAPI.Data;
 using BankingAPI.Identity;
 using BankingAPI.Infrastructure.Errors;
+using BankingAPI.Infrastructure.Validation;
+
+using FluentValidation;
 
 using Microsoft.EntityFrameworkCore;
+
+using Scalar.AspNetCore;
 
 namespace BankingAPI;
 
@@ -23,9 +28,12 @@ public sealed class Program
                 ?? throw new InvalidOperationException("Connection string 'Banking' is not configured.");
             options.UseSqlServer(connectionString);
         });
-        builder.Services.AddControllers();
+        builder.Services.AddControllers(options => options.Filters.Add<FluentValidationFilter>());
         builder.Services.AddProblemDetails();
         builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
+        builder.Services.AddValidatorsFromAssemblyContaining<Program>(includeInternalTypes: true);
+        builder.Services.AddOpenApi();
+
         builder.Services.AddHealthChecks().AddDbContextCheck<BankingDbContext>(
         customTestQuery: static async (dbContext, cancellationToken) =>
         {
@@ -40,6 +48,13 @@ public sealed class Program
         // Middleware Configurations
         var app = builder.Build();
         await app.MigrateDatabaseIfEnabledAsync();
+
+        // Display UI for the API while in development
+        if (app.Environment.IsDevelopment() || app.Environment.IsEnvironment("Demo"))
+        {
+            app.MapOpenApi();
+            app.MapScalarApiReference();
+        }
 
         app.UseExceptionHandler();
         app.UseStatusCodePages();
