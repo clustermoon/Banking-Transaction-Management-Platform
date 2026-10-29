@@ -71,8 +71,9 @@ public sealed class Program
         // Display UI for the API while in development
         if (app.Environment.IsDevelopment() || app.Environment.IsEnvironment("Demo"))
         {
-            app.MapOpenApi();
-            app.MapScalarApiReference();
+            var apiReference = app.MapGroup(string.Empty).AllowAnonymous();
+            apiReference.MapOpenApi();
+            apiReference.MapScalarApiReference();
         }
 
         await app.RunAsync();

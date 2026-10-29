@@ -83,6 +83,29 @@ public sealed class AuthController(
         var token = tokenIssuer.Issue(user, await userManager.GetRolesAsync(user));
         return Ok(new LoginResponse(token.Value, token.ExpiresAt));
     }
+
+    [HttpPost("logout")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    public async Task<IActionResult> Logout()
+    {
+        var user = await userManager.GetUserAsync(User);
+        if (user is null)
+        {
+            return Unauthorized();
+        }
+
+        // Rotating the stamp revokes every token issued before now: TokenRevocationCheck
+        // compares each request's token stamp against this value.
+        var rotated = await userManager.UpdateSecurityStampAsync(user);
+        if (!rotated.Succeeded)
+        {
+            throw new InvalidOperationException("Rotating the security stamp during logout failed.");
+        }
+
+        return NoContent();
+    }
+
     private void AddIdentityErrors(IdentityResult result)
     {
         foreach (var error in result.Errors)
