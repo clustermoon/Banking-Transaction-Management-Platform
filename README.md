@@ -8,25 +8,20 @@ This repository was intentionally created using very limited to no external help
 ![Docker](https://img.shields.io/badge/Docker-2496ED?logo=docker&logoColor=white)
 ![CI](https://github.com/clustermoon/Banking-Transaction-Management-Platform/actions/workflows/ci.yml/badge.svg)
 
+A full-stack banking and transaction management platform built with ASP.NET Core, Entity Framework Core, and SQL Server. Customers will manage checking and savings accounts, move money, and review their history, while administrators freeze and close accounts under an audit trail.
+
 ## Highlights
 
-- **One-command database:** SQL Server 2022 in Docker, with nothing to configure.
-- **Money handled carefully:** `decimal(18,2)` everywhere, with database check constraints that reject negative balances and non-positive amounts.
-- **Append-only ledger and audit log:** database triggers reject `UPDATE` and `DELETE`, so you can try to tamper with it.
+- **One command runs everything:** SQL Server, the API, and the client start with `docker compose up`, in order, gated by health checks.
+- **Logout actually logs you out:** access tokens are short-lived JWTs, and every request is checked against the user's current security stamp, so a token stops working the moment its owner signs out.
+- **Secure by default:** every API endpoint requires authentication unless it explicitly opts out, and accounts lock for 15 minutes after 5 failed sign-ins.
 - **One error format:** every failure is an RFC 7807 `application/problem+json` response.
-- **Gated by CI:** each pull request is built on Linux and format-checked before it can merge.
+- **Tested against the real database:** integration tests run against SQL Server in a disposable container, not an in-memory fake.
+- **Gated by CI:** every pull request is built, format-checked, tested, and smoke-tested with the same `docker compose up` described below.
 
 ## Overview
 
-This project began as a C# banking application I developed during my computer science coursework. The original assignment gave me a functioning foundation, but I wanted to take it further.
-
-Rather than simply polishing the assignment, I decided to rebuild the application under my own architectural direction while reusing the business logic I'd already developed. This gives me the opportunity to make deliberate decisions about the application's structure, reliability, security, and maintainability.
-
-I'm expanding the original scope into a **Banking & Transaction Management Platform**, with particular attention to financial correctness, concurrency, testing, and realistic application behavior.
-
-My intention isn't to replicate every feature of a production banking system. I want to demonstrate how I approach software engineering problems, why I choose certain solutions over others, and how I balance technical quality against the time and complexity involved.
-
-A full-stack banking and transaction management platform built with ASP.NET Core, Entity Framework Core, and SQL Server. Customers will manage checking and savings accounts, move money, and review their history, while administrators freeze and close accounts under an audit trail.
+This project began as a C# banking application I developed during my computer science coursework. The original assignment gave me a foundation, but I wanted to take it further. I decided to rebuild the application under my own direction while reusing what I'd already developed and learned. This gave me the opportunity to make deliberate decisions about the application's structure. With the added freedom I expanded the initial projce scope into a **Banking & Transaction Management Platform**. 
 
 ## Getting Started
 
@@ -41,9 +36,52 @@ The first start takes a minute while SQL Server initializes. Then:
 | Service | URL |
 | --- | --- |
 | Client | http://localhost:5002 |
+| API reference (Scalar) | http://localhost:5001/scalar |
 | API readiness | http://localhost:5001/health/ready |
 
 Startup is ordered by health checks: the API starts once SQL Server accepts queries, and the client starts once the API reports ready.
+
+## Demo Accounts
+
+The demo seeds three customers, so you can sign in without registering:
+
+| Email | Password | Use it to see |
+| --- | --- | --- |
+| `alice@avenor.test` | `Avenor-Demo-2026` | Everyday banking |
+| `ben@avenor.test` | `Avenor-Demo-2026` | Customer isolation: Ben can never see Alice's accounts |
+| `cara@avenor.test` | `Avenor-Demo-2026` | Edge cases: low balance, frozen and closed accounts |
+
+**Why the passwords are public:** they exist only to make the demo explorable. Seeding is off by default, runs only in the Docker demo and local development, and the API refuses to start if it's enabled in Production. Accounts lock for 15 minutes after five failed sign-ins, so if one demo account locks, use another or reset with `docker compose down -v`.
+
+## Exploring the API
+
+The API ships with an interactive reference, built with [Scalar](https://scalar.com) from the API's OpenAPI document, so you can call every endpoint from your browser. It's available in the Docker demo and in local development, and disabled in any other environment.
+
+1. Open http://localhost:5001/scalar.
+2. Call `POST /api/auth/login` with `alice@avenor.test` and `Avenor-Demo-2026`, and copy the `accessToken` from the response. (You can also create your own account with `POST /api/auth/register`.)
+3. Open the authentication panel, choose **Bearer**, and paste the token.
+4. Call `GET /api/profile` to see your signed-in profile.
+
+### Things to try
+
+- **Log out and reuse the token.** Call `POST /api/auth/logout`, then `GET /api/profile` again with the same token. The API now returns `401`, because logout rotated the security stamp the token was issued with.
+- **Trigger a lockout.** Sign in with a wrong password five times. The sixth attempt is refused, even with the correct password, for 15 minutes.
+- **Call a protected endpoint anonymously.** Remove the token and call `GET /api/profile`. The API returns `401` without the endpoint declaring any authorization attribute, because authentication is required by default.
+- **Send invalid input.** Register with `not-an-email` or a short password. The response is a `400` problem document listing the error for each field.
+
+## Configuration
+
+The demo runs with documented, development-only secrets defined in `docker-compose.yml`. Every port is bound to `127.0.0.1`, so nothing is reachable from other machines. To use your own values, set these environment variables before starting the stack:
+
+| Variable | Purpose |
+| --- | --- |
+| `MSSQL_SA_PASSWORD` | SQL Server SA password. Must meet SQL Server's complexity rules. |
+| `JWT_SIGNING_KEY` | Access-token signing key. At least 32 characters. |
+
+SQL Server keeps the password from the volume's first start, so if you change `MSSQL_SA_PASSWORD`, run `docker compose down -v` first.
+
+Outside the Docker demo and local development, the API refuses to start without a signing key, so a misconfigured deployment can't run with a missing or weak key.
+
 
 ### Resetting
 
@@ -57,13 +95,9 @@ This removes the database volume, so the next `up` starts from an empty database
 
 The stack binds ports 1433, 5001, and 5002 on `127.0.0.1`. If one is in use (a local SQL Server instance is the usual cause), stop that service or change the host side of the port mapping in `docker-compose.yml`.
 
-### Database password
-
-SQL Server runs with a documented development-only SA password, defined in `docker-compose.yml`. The ports are bound to loopback, so the database isn't reachable from other machines. To use your own password, set `MSSQL_SA_PASSWORD` before starting the stack. It must meet SQL Server's complexity rules. SQL Server keeps the password from the volume's first start, so if you change it, run `docker compose down -v` first.
-
 ## Local Development
 
-Run the database in Docker and the apps from your IDE or the CLI:
+Run only the database in Docker, and the apps from your IDE or the CLI:
 
 ```bash
 docker compose up -d sqlserver
@@ -71,25 +105,15 @@ dotnet run --project BankingAPI/BankingAPI --launch-profile http
 dotnet run --project BankingClient/BankingClient --launch-profile http
 ```
 
-## Usage
+Stop the full stack first (`docker compose down`) if it's running, since the containers and the local apps use the same ports. In development, the API creates and migrates its database on startup.
 
-Start the database and the API:
-
-```bash
-docker compose up -d && dotnet run --project BankingAPI/BankingAPI --launch-profile http
-```
-
-Try to tamper with the ledger. The database rejects it with `Msg 51000`:
-
-```bash
-docker exec banking-sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P Banking_Dev_Passw0rd -C -d BankingDb -Q "UPDATE dbo.Transactions SET Amount = Amount"
-```
-
-Run tests
+### Running tests
 
 ```bash
 dotnet test BankingAPI/BankingAPI.slnx
 ```
+
+Integration tests start their own disposable SQL Server container through Testcontainers, so Docker must be running. They never touch the compose database.
 
 ## Authors
 Hi, my name is [David Wommack](https://github.com/clustermoon). I created this project as a portfolio piece from the incredible advice of the amazing university faculty and staff that have supported me as I shifted from outside industries into the computer science industry. I have 16 years of hobbyist programming, but as of 3 years ago(2023) shifted into treating my passion as my profession, seeking to attain a degree and pursuing my life's passion.

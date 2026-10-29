@@ -36,6 +36,7 @@ internal static class IdentityServiceCollectionExtensions
             .AddRoles<IdentityRole<Guid>>()
             .AddEntityFrameworkStores<BankingDbContext>()
             .AddSignInManager();
+        services.AddScoped<CustomerRegistrar>();
 
         return services;
     }

@@ -1,4 +1,5 @@
 using BankingAPI.Data;
+using BankingAPI.Data.Seeding;
 using BankingAPI.Identity;
 using BankingAPI.Infrastructure.Errors;
 using BankingAPI.Infrastructure.OpenApi;
@@ -57,7 +58,9 @@ public sealed class Program
         // --- Middleware Configurations ---
         var app = builder.Build();
 
+        // Migrate database into the program
         await app.MigrateDatabaseIfEnabledAsync();
+        await app.SeedDemoDataIfEnabledAsync();
 
         app.UseExceptionHandler();
         app.UseStatusCodePages();

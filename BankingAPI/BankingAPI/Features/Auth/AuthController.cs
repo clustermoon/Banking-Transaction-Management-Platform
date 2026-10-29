@@ -1,4 +1,3 @@
-using BankingAPI.Data;
 using BankingAPI.Identity;
 using BankingAPI.Infrastructure;
 
@@ -11,10 +10,10 @@ namespace BankingAPI.Features.Auth;
 [ApiController]
 [Route("api/auth")]
 public sealed class AuthController(
+    CustomerRegistrar customerRegistrar,
     UserManager<ApplicationUser> userManager,
     SignInManager<ApplicationUser> signInManager,
-    AccessTokenIssuer tokenIssuer,
-    BankingDbContext dbContext) : ControllerBase
+    AccessTokenIssuer tokenIssuer) : ControllerBase
 {
     [AllowAnonymous]
     [HttpPost("register")]
@@ -22,37 +21,19 @@ public sealed class AuthController(
     [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> Register(RegisterRequest request, CancellationToken cancellationToken)
     {
-        var user = new ApplicationUser
-        {
-            UserName = request.Email,
-            Email = request.Email,
-            DisplayName = request.DisplayName.Trim(),
-        };
+        var registration = await customerRegistrar.RegisterAsync(
+            request.Email, request.Password, request.DisplayName, cancellationToken);
 
-        // Creating the user and assigning the role are two saves; one transaction
-        // keeps a failure from leaving a user with no role.
-        await using var transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken);
-
-        var created = await userManager.CreateAsync(user, request.Password);
-        if (!created.Succeeded)
+        if (registration.User is not { } user)
         {
-            AddIdentityErrors(created);
+            AddIdentityErrors(registration.Outcome);
             return ValidationProblem(ModelState);
         }
-
-        var roleAssigned = await userManager.AddToRoleAsync(user, Roles.Customer);
-        if (!roleAssigned.Succeeded)
-        {
-            throw new InvalidOperationException($"Assigning the {Roles.Customer} role to a new user failed.");
-        }
-
-        await transaction.CommitAsync(cancellationToken);
 
         return StatusCode(
             StatusCodes.Status201Created,
             new RegisterResponse(user.Id, request.Email, user.DisplayName));
     }
-
 
     [AllowAnonymous]
     [HttpPost("login")]
