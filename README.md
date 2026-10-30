@@ -18,6 +18,7 @@ A full-stack banking and transaction management platform built with ASP.NET Core
 - **One error format:** every failure is an RFC 7807 `application/problem+json` response.
 - **Tested against the real database:** integration tests run against SQL Server in a disposable container, not an in-memory fake.
 - **Gated by CI:** every pull request is built, format-checked, tested, and smoke-tested with the same `docker compose up` described below.
+- **The browser never sees the API token:** the client keeps it inside an encrypted, HttpOnly session cookie and attaches it to API calls server-side, so scripts in the page can't read it.
 
 ## Overview
 
@@ -41,7 +42,7 @@ The first start takes a minute while SQL Server initializes. Then:
 
 Startup is ordered by health checks: the API starts once SQL Server accepts queries, and the client starts once the API reports ready.
 
-## Demo Accounts
+### Demo Accounts
 
 The demo seeds three customers, so you can sign in without registering:
 
@@ -53,7 +54,7 @@ The demo seeds three customers, so you can sign in without registering:
 
 **Why the passwords are public:** they exist only to make the demo explorable. Seeding is off by default, runs only in the Docker demo and local development, and the API refuses to start if it's enabled in Production. Accounts lock for 15 minutes after five failed sign-ins, so if one demo account locks, use another or reset with `docker compose down -v`.
 
-## Exploring the API
+### Exploring the API
 
 The API ships with an interactive reference, built with [Scalar](https://scalar.com) from the API's OpenAPI document, so you can call every endpoint from your browser. It's available in the Docker demo and in local development, and disabled in any other environment.
 
@@ -62,14 +63,23 @@ The API ships with an interactive reference, built with [Scalar](https://scalar.
 3. Open the authentication panel, choose **Bearer**, and paste the token.
 4. Call `GET /api/profile` to see your signed-in profile.
 
-### Things to try
+#### Things to try
 
 - **Log out and reuse the token.** Call `POST /api/auth/logout`, then `GET /api/profile` again with the same token. The API now returns `401`, because logout rotated the security stamp the token was issued with.
 - **Trigger a lockout.** Sign in with a wrong password five times. The sixth attempt is refused, even with the correct password, for 15 minutes.
 - **Call a protected endpoint anonymously.** Remove the token and call `GET /api/profile`. The API returns `401` without the endpoint declaring any authorization attribute, because authentication is required by default.
 - **Send invalid input.** Register with `not-an-email` or a short password. The response is a `400` problem document listing the error for each field.
 
-## Configuration
+### Using the Client
+
+Open http://localhost:5002, choose **Log in**, and sign in with any demo account. You'll land on your profile, which the client loads from the API on every visit.
+
+#### Things to try
+
+- **Sign out everywhere.** Sign in as Alice in a normal window and a private window. Log out in one, then refresh the profile in the other: the client finds the session revoked and asks you to log in again.
+- **Register.** Create your own account. Validation errors from the API appear beside the field they belong to.
+
+### Configuration
 
 The demo runs with documented, development-only secrets defined in `docker-compose.yml`. Every port is bound to `127.0.0.1`, so nothing is reachable from other machines. To use your own values, set these environment variables before starting the stack:
 
@@ -79,9 +89,8 @@ The demo runs with documented, development-only secrets defined in `docker-compo
 | `JWT_SIGNING_KEY` | Access-token signing key. At least 32 characters. |
 
 SQL Server keeps the password from the volume's first start, so if you change `MSSQL_SA_PASSWORD`, run `docker compose down -v` first.
-
 Outside the Docker demo and local development, the API refuses to start without a signing key, so a misconfigured deployment can't run with a missing or weak key.
-
+The client's session cookies are encrypted with keys that live inside its container, so recreating the client container (for example, `docker compose up --build`) signs everyone out. A production deployment would persist and protect those keys.
 
 ### Resetting
 
@@ -111,9 +120,9 @@ Stop the full stack first (`docker compose down`) if it's running, since the con
 
 ```bash
 dotnet test BankingAPI/BankingAPI.slnx
+dotnet test BankingClient/BankingClient.slnx
 ```
-
-Integration tests start their own disposable SQL Server container through Testcontainers, so Docker must be running. They never touch the compose database.
+API integration tests start their own disposable SQL Server container through Testcontainers, so Docker must be running. Client tests are fast unit tests with no external dependencies.
 
 ## Authors
 Hi, my name is [David Wommack](https://github.com/clustermoon). I created this project as a portfolio piece from the incredible advice of the amazing university faculty and staff that have supported me as I shifted from outside industries into the computer science industry. I have 16 years of hobbyist programming, but as of 3 years ago(2023) shifted into treating my passion as my profession, seeking to attain a degree and pursuing my life's passion.

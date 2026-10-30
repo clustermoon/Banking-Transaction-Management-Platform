@@ -21,7 +21,7 @@ jobs:
             run-tests: true
           - name: BankingClient
             solution: BankingClient/BankingClient.slnx
-            run-tests: false # Flipped to true when the auth slice adds BankingClient.Tests.
+            run-tests: true
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-dotnet@v6

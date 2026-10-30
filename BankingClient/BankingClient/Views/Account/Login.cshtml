@@ -19,6 +19,13 @@
     <p class="panel-subtitle">Log in to your Avenor account to continue.</p>
 
     <form asp-action="Login" method="post" novalidate>
+        @if (Model.SessionExpired)
+        {
+            <div class="form-notice" role="status">
+                <i class="bi bi-info-circle" aria-hidden="true"></i>
+                <span>Your session has ended. Log in again to continue.</span>
+            </div>
+        }
         <partial name="_FormAlert" />
         <input asp-for="ReturnUrl" type="hidden" />
 

@@ -262,6 +262,20 @@ main {
     font-size: 0.9rem;
 }
 
+.form-notice {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.85rem 1rem;
+    margin-bottom: 1.5rem;
+    border: 1px solid var(--avenor-border);
+    border-radius: 0.5rem;
+    background: var(--avenor-sky);
+    color: var(--avenor-blue-dark);
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
 .btn-submit {
     display: flex;
     align-items: center;

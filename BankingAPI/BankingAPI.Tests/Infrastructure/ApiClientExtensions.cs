@@ -28,7 +28,7 @@ internal static class ApiClientExtensions
 
     public static Task<HttpResponseMessage> LoginAsync(
         this HttpClient client, string email, string password, CancellationToken cancellationToken) =>
-        client.PostAsJsonAsync( new Uri("/api/auth/login", UriKind.Relative), new LoginRequest(email, password), cancellationToken);
+        client.PostAsJsonAsync(new Uri("/api/auth/login", UriKind.Relative), new LoginRequest(email, password), cancellationToken);
 
     public static async Task<string> GetAccessTokenAsync(
         this HttpClient client, string email, CancellationToken cancellationToken)

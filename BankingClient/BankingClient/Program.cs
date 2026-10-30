@@ -1,4 +1,5 @@
 using BankingClient.Api;
+using BankingClient.Authentication;
 
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Mvc;
@@ -50,6 +51,12 @@ public sealed class Program
         // This protects form posts, including login, registration, and logout.
         builder.Services.Configure<RouteOptions>(options => options.LowercaseUrls = true);
         builder.Services.AddControllersWithViews(options => options.Filters.Add(new AutoValidateAntiforgeryTokenAttribute()));
+
+        builder.Services.AddControllersWithViews(options =>
+        {
+            options.Filters.Add(new AutoValidateAntiforgeryTokenAttribute());
+            options.Filters.Add<ApiUnauthorizedExceptionFilter>();
+        });
 
         var app = builder.Build();
 

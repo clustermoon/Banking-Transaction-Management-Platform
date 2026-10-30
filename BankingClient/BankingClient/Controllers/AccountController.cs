@@ -19,7 +19,7 @@ public sealed class AccountController(IBankingApiClient api) : Controller
 {
     #region GET Login
     [HttpGet("login")]
-    public IActionResult Login(string? returnUrl) => View(new LoginViewModel { ReturnUrl = returnUrl });
+    public IActionResult Login(string? returnUrl, bool sessionExpired) => View(new LoginViewModel { ReturnUrl = returnUrl, SessionExpired = sessionExpired });
     #endregion
 
     #region POST Login

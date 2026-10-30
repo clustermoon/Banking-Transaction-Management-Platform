@@ -26,7 +26,7 @@ public sealed class BankingApiFactory : WebApplicationFactory<Program>, IAsyncLi
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         // The container's default connection string targets master; point it at an app database.
-        var connectionString = new SqlConnectionStringBuilder(_sqlServer.GetConnectionString()){ InitialCatalog = "Banking", }.ConnectionString;
+        var connectionString = new SqlConnectionStringBuilder(_sqlServer.GetConnectionString()) { InitialCatalog = "Banking", }.ConnectionString;
 
         builder.UseEnvironment("Testing");
         builder.UseSetting("ConnectionStrings:Banking", connectionString);

@@ -21,7 +21,7 @@ public sealed class RegisterTests(BankingApiFactory factory)
     {
         var cancellationToken = TestContext.Current.CancellationToken;
         using var client = factory.CreateClient();
-        var request = new RegisterRequest( ApiClientExtensions.UniqueEmail(), ApiClientExtensions.TestPassword, "Test User");
+        var request = new RegisterRequest(ApiClientExtensions.UniqueEmail(), ApiClientExtensions.TestPassword, "Test User");
 
         using var response = await client.PostAsJsonAsync(RegisterUri, request, cancellationToken);
 

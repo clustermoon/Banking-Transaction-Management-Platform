@@ -70,6 +70,11 @@ public sealed class BankingApiClient(HttpClient httpClient) : IBankingApiClient
         }
 
         using var response = await httpClient.SendAsync(request, cancellationToken);
+        if (response.StatusCode == HttpStatusCode.Unauthorized)
+        {
+            throw new ApiUnauthorizedException();
+        }
+
         if (response.StatusCode != HttpStatusCode.OK)
         {
             throw UnexpectedStatus(response);
