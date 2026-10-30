@@ -6,8 +6,8 @@
     <div class="container">
         <h1>Your Financial Future, Our Priority</h1>
         <p class="lead mb-4">Secure. Simple. Built for you.</p>
-        <a class="btn btn-primary btn-lg me-2" href="#">Open An Account</a>
-        <a class="btn btn-outline-primary btn-lg" href="#features">Learn More</a>
+        <a class="btn btn-primary btn-lg me-2" asp-controller="Account" asp-action="Register">Open an account</a>
+        <a class="btn btn-outline-primary btn-lg" href="#features">Learn more</a>
     </div>
 </section>
 
@@ -15,22 +15,22 @@
     <div class="container">
         <div class="row g-4 text-center">
             <div class="col-md-6 col-lg-3">
-                <img class="feature_icon" src="~/images/secure-sign-in.svg" />
+                <img class="feature-icon" src="~/images/secure-sign-in.svg" alt="" width="80" height="80" />
                 <h2 class="h5">Secure Sign In</h2>
                 <p>Your data is protected with industry-standard security.</p>
             </div>
             <div class="col-md-6 col-lg-3">
-                <img class="feature_icon" src="~/images/checking-savings.svg" />
+                <img class="feature-icon" src="~/images/checking-savings.svg" alt="" width="80" height="80" />
                 <h2 class="h5">Checking and Savings</h2>
                 <p>Open and store your finances with individual checking and savings accounts.</p>
             </div>
             <div class="col-md-6 col-lg-3">
-                <img class="feature_icon" src="~/images/move-money.svg" />
+                <img class="feature-icon" src="~/images/move-money.svg" alt="" width="80" height="80" />
                 <h2 class="h5">Move Money</h2>
-                <p>Deposit, Withdraw, and transfer with just a few clicks.</p>
+                <p>Deposit, withdraw, and transfer with just a few clicks.</p>
             </div>
             <div class="col-md-6 col-lg-3">
-                <img class="feature_icon" src="~/images/statement.svg" />
+                <img class="feature-icon" src="~/images/statement.svg" alt="" width="80" height="80" />
                 <h2 class="h5">Statements and History</h2>
                 <p>Track your transactions and manage your finances.</p>
             </div>
@@ -41,13 +41,13 @@
 <section class="showcase">
     <div class="row g-0">
         <div class="col-lg-5">
-            <img class="showcase-img" src="~/images/laptop.webp" alt="Computer and coffee" />
+            <img class="showcase-img" src="~/images/laptop.webp" alt="" />
         </div>
         <div class="col-lg-7 d-flex align-items-center">
             <div class="p-5">
                 <h2>Modern Banking. Made simple.</h2>
                 <p>Whether you're saving for tomorrow or managing your daily expenses, Avenor Bank gives you the tools you need.</p>
-                <a class="btn btn-primary" href="#">Open An Account</a>
+                <a class="btn btn-primary" asp-controller="Account" asp-action="Register">Open an account</a>
             </div>
         </div>
     </div>

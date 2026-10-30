@@ -1,0 +1,56 @@
+@model RegisterViewModel
+@{
+    Layout = "_AuthLayout";
+    ViewData["Title"] = "Create an account";
+    ViewData["Eyebrow"] = "Get started with Avenor";
+    ViewData["Lead"] = "Create your profile and get ready to manage your everyday banking.";
+    ViewData["TrustIcon"] = "bi-shield-check";
+    ViewData["TrustNote"] = "Your details are protected during registration";
+}
+
+@section Headline {
+    Banking starts
+    <br />with simplicity.
+}
+
+<div class="panel panel-body">
+    <h2 class="panel-title-lg">Create an account</h2>
+    <p class="panel-subtitle">Enter your details to register for Avenor.</p>
+
+    <form asp-action="Register" method="post" novalidate>
+        <partial name="_FormAlert" />
+
+        <div class="form-field">
+            <label asp-for="DisplayName" class="form-label"></label>
+            <input asp-for="DisplayName" class="form-control" placeholder="Your full name" autocomplete="name" />
+            <span asp-validation-for="DisplayName" class="field-error"></span>
+        </div>
+
+        <div class="form-field">
+            <label asp-for="Email" class="form-label"></label>
+            <input asp-for="Email" class="form-control" placeholder="you@example.com" autocomplete="email" />
+            <span asp-validation-for="Email" class="field-error"></span>
+        </div>
+
+        <div class="form-field">
+            <label asp-for="Password" class="form-label"></label>
+            <input asp-for="Password" class="form-control" placeholder="Create a password"
+                   autocomplete="new-password" aria-describedby="password-help" />
+            <p id="password-help" class="field-help">Use at least 10 characters.</p>
+            <span asp-validation-for="Password" class="field-error"></span>
+        </div>
+
+        <div class="form-field">
+            <label asp-for="ConfirmPassword" class="form-label"></label>
+            <input asp-for="ConfirmPassword" class="form-control" placeholder="Re-enter your password" autocomplete="new-password" />
+            <span asp-validation-for="ConfirmPassword" class="field-error"></span>
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-submit">
+            Create Account
+            <i class="bi bi-arrow-right" aria-hidden="true"></i>
+        </button>
+    </form>
+
+    <p class="form-alt-action">Already have an account? <a asp-action="Login">Log in</a></p>
+</div>

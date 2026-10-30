@@ -117,7 +117,7 @@ public sealed class AuthController(
                 continue;
             }
 
-            var field = error.Code.StartsWith("Password", StringComparison.Ordinal)? nameof(RegisterRequest.Password)
+            var field = error.Code.StartsWith("Password", StringComparison.Ordinal) ? nameof(RegisterRequest.Password)
                 : error.Code.Contains("Email", StringComparison.Ordinal) || error.Code.Contains("UserName", StringComparison.Ordinal)
                 ? nameof(RegisterRequest.Email)
                 : string.Empty;

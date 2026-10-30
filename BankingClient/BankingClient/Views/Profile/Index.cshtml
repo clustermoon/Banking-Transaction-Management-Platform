@@ -1,0 +1,60 @@
+@model ProfileResponse
+@{
+    ViewData["Title"] = "My profile";
+}
+
+<div class="page-surface">
+    <div class="container page-content">
+        <nav aria-label="Breadcrumb">
+            <ol class="breadcrumb-trail">
+                <li><a asp-controller="Home" asp-action="Index">Home</a></li>
+                <li aria-current="page">My profile</li>
+            </ol>
+        </nav>
+
+        <h1 class="page-title">My profile</h1>
+        <p class="page-subtitle">View your account identity and sign-in security.</p>
+
+        <div class="panel profile-panel">
+            <div class="row g-0">
+                <section class="col-lg-7 panel-body" aria-labelledby="account-information">
+                    <h2 id="account-information" class="panel-title">Account information</h2>
+                    <p class="panel-subtitle">Details associated with your Avenor sign-in.</p>
+
+                    <dl class="detail-list">
+                        <div class="detail-row">
+                            <dt>Full name</dt>
+                            <dd>@Model.DisplayName</dd>
+                        </div>
+                        <div class="detail-row">
+                            <dt>Email address</dt>
+                            <dd>@Model.Email</dd>
+                        </div>
+                        <div class="detail-row">
+                            <dt>Account role</dt>
+                            <dd>
+                                @foreach (var role in Model.Roles)
+                                {
+                                    <span class="badge-soft">@role</span>
+                                }
+                            </dd>
+                        </div>
+                    </dl>
+                </section>
+
+                <section class="col-lg-5 panel-body profile-security" aria-labelledby="session-security">
+                    <span class="icon-tile">
+                        <i class="bi bi-shield-check" aria-hidden="true"></i>
+                    </span>
+                    <h2 id="session-security" class="panel-title">Session security</h2>
+                    <p class="panel-subtitle">Logging out ends your session on every device.</p>
+                    <hr class="panel-divider" />
+                    <p class="info-line">
+                        <i class="bi bi-info-circle" aria-hidden="true"></i>
+                        <span>When you're finished banking, use <strong>Log out</strong> to protect your account.</span>
+                    </p>
+                </section>
+            </div>
+        </div>
+    </div>
+</div>

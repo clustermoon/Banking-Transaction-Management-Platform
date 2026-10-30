@@ -1,5 +1,5 @@
 namespace BankingAPI.Features.Auth;
- 
+
 /// <summary>
 /// Data required to create a new customer account.
 /// </summary>
