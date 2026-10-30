@@ -1,5 +1,3 @@
-using BankingAPI.Infrastructure;
-
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 
@@ -20,9 +18,7 @@ internal static class TokenRevocationCheck
         var user = await userManager.GetUserAsync(principal);
         var tokenStamp = principal.FindFirst(userManager.Options.ClaimsIdentity.SecurityStampClaimType)?.Value;
 
-        if (user is null
-            || !string.Equals(tokenStamp, user.SecurityStamp, StringComparison.Ordinal)
-            || await userManager.IsLockedOutAsync(user))
+        if (user is null || !string.Equals(tokenStamp, user.SecurityStamp, StringComparison.Ordinal) || await userManager.IsLockedOutAsync(user))
         {
             context.Fail("The access token has been revoked.");
         }

@@ -12,9 +12,7 @@ namespace BankingAPI.Tests.Infrastructure;
 /// </summary>
 public sealed class BankingApiFactory : WebApplicationFactory<Program>, IAsyncLifetime
 {
-    private readonly MsSqlContainer _sqlServer = new MsSqlBuilder("mcr.microsoft.com/mssql/server:2022-latest")
-        .WithImage("mcr.microsoft.com/mssql/server:2022-latest")
-        .Build();
+    private readonly MsSqlContainer _sqlServer = new MsSqlBuilder("mcr.microsoft.com/mssql/server:2022-latest").Build();
 
     public async ValueTask InitializeAsync()
     {
@@ -28,10 +26,7 @@ public sealed class BankingApiFactory : WebApplicationFactory<Program>, IAsyncLi
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         // The container's default connection string targets master; point it at an app database.
-        var connectionString = new SqlConnectionStringBuilder(_sqlServer.GetConnectionString())
-        {
-            InitialCatalog = "Banking",
-        }.ConnectionString;
+        var connectionString = new SqlConnectionStringBuilder(_sqlServer.GetConnectionString()){ InitialCatalog = "Banking", }.ConnectionString;
 
         builder.UseEnvironment("Testing");
         builder.UseSetting("ConnectionStrings:Banking", connectionString);

@@ -9,6 +9,7 @@ namespace BankingAPI.Tests.Features.Auth;
 
 public sealed class LoginTests(BankingApiFactory factory)
 {
+    #region FACT? - Login Returns Token For Valid Credentials
     [Fact]
     public async Task LoginReturnsTokenForValidCredentials()
     {
@@ -20,7 +21,9 @@ public sealed class LoginTests(BankingApiFactory factory)
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
     }
+    #endregion
 
+    #region FACT? - Login Rejects Wrong Password
     [Fact]
     public async Task LoginRejectsWrongPassword()
     {
@@ -32,7 +35,9 @@ public sealed class LoginTests(BankingApiFactory factory)
 
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
     }
+    #endregion
 
+    #region FACT? - Five Failed Attempts Lock The Account Even For The Correct Password
     [Fact]
     public async Task FiveFailedAttemptsLockTheAccountEvenForTheCorrectPassword()
     {
@@ -51,4 +56,5 @@ public sealed class LoginTests(BankingApiFactory factory)
         var problem = await response.Content.ReadFromJsonAsync<ProblemDetails>(cancellationToken);
         Assert.Equal("Account locked", problem!.Title);
     }
+    #endregion
 }

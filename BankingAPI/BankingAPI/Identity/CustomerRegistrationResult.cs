@@ -1,5 +1,3 @@
-using BankingAPI.Infrastructure;
-
 using Microsoft.AspNetCore.Identity;
 
 namespace BankingAPI.Identity;

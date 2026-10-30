@@ -26,8 +26,7 @@ internal sealed class FluentValidationFilter : IAsyncActionFilter
                 continue;
             }
 
-            var result = await validator.ValidateAsync(
-                new ValidationContext<object>(argument), context.HttpContext.RequestAborted);
+            var result = await validator.ValidateAsync(new ValidationContext<object>(argument), context.HttpContext.RequestAborted);
 
             foreach (var error in result.Errors)
             {

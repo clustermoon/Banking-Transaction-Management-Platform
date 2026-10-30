@@ -10,6 +10,7 @@ namespace BankingAPI.Tests.Data;
 
 public sealed class SchemaTests(BankingApiFactory factory)
 {
+    #region FACT? - Model Has No Changes Missing From Migrations
     [Fact]
     public void ModelHasNoChangesMissingFromMigrations()
     {
@@ -18,7 +19,9 @@ public sealed class SchemaTests(BankingApiFactory factory)
 
         Assert.False(dbContext.Database.HasPendingModelChanges());
     }
+    #endregion
 
+    #region FACT? - Customer Role is Seeded By Migration
     [Fact]
     public async Task CustomerRoleIsSeededByMigration()
     {
@@ -27,4 +30,5 @@ public sealed class SchemaTests(BankingApiFactory factory)
 
         Assert.True(await roleManager.RoleExistsAsync(Roles.Customer));
     }
+    #endregion
 }

@@ -1,5 +1,4 @@
 using BankingAPI.Identity;
-using BankingAPI.Infrastructure;
 
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;

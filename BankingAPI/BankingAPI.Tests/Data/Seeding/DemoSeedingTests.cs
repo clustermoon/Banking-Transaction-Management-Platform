@@ -2,14 +2,13 @@ using System.Net;
 
 using BankingAPI.Data.Seeding;
 using BankingAPI.Identity;
-using BankingAPI.Infrastructure;
 using BankingAPI.Tests.Infrastructure;
 
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace BankingAPI.Tests.Data;
+namespace BankingAPI.Tests.Data.Seeding;
 
 public sealed class DemoSeedingTests(BankingApiFactory factory)
 {
@@ -24,6 +23,7 @@ public sealed class DemoSeedingTests(BankingApiFactory factory)
         return emails;
     }
 
+    #region THEORY? - Demo Customer Can Sign In WIth Published Password
     [Theory]
     [MemberData(nameof(DemoCustomerEmails))]
     public async Task DemoCustomerCanSignInWithPublishedPassword(string email)
@@ -35,13 +35,14 @@ public sealed class DemoSeedingTests(BankingApiFactory factory)
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
     }
+    #endregion
 
+    #region FACT? - Restarting The API Does Not Duplicate Demo Customers
     [Fact]
     public async Task RestartingTheApiDoesNotDuplicateDemoCustomers()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
 
-        // A second host runs startup again, including the seeder, against the same database.
         await using var restartedHost = factory.WithWebHostBuilder(static _ => { });
         using var restartedClient = restartedHost.CreateClient();
 
@@ -53,4 +54,5 @@ public sealed class DemoSeedingTests(BankingApiFactory factory)
             Assert.Equal(1, matches);
         }
     }
+    #endregion
 }

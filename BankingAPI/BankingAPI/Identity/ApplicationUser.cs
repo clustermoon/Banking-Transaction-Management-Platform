@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Identity;
 
-namespace BankingAPI.Infrastructure;
+namespace BankingAPI.Identity;
 
 /// <summary>
 /// A bank customer or administarto. Users are never deleted; access is ended through

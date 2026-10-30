@@ -1,5 +1,4 @@
 using BankingAPI.Data;
-using BankingAPI.Infrastructure;
 
 using Microsoft.AspNetCore.Identity;
 
@@ -12,8 +11,7 @@ namespace BankingAPI.Identity;
 /// </summary>
 public sealed class CustomerRegistrar(UserManager<ApplicationUser> userManager, BankingDbContext dbContext)
 {
-    public async Task<CustomerRegistrationResult> RegisterAsync(
-        string email, string password, string displayName, CancellationToken cancellationToken)
+    public async Task<CustomerRegistrationResult> RegisterAsync(string email, string password, string displayName, CancellationToken cancellationToken)
     {
         var user = new ApplicationUser
         {

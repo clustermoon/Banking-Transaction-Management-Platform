@@ -15,6 +15,7 @@ public sealed class ProfileTests(BankingApiFactory factory)
 {
     private static readonly Uri ProfileUri = new("/api/profile", UriKind.Relative);
 
+    #region FACT? - Profile Returns Signed In User
     [Fact]
     public async Task ProfileReturnsSignedInUser()
     {
@@ -28,7 +29,9 @@ public sealed class ProfileTests(BankingApiFactory factory)
         Assert.Equal(email, profile!.Email);
         Assert.Contains(Roles.Customer, profile.Roles);
     }
+    #endregion
 
+    #region FACT? - Profile Requires Authentication Through The Fallback Policy
     [Fact]
     public async Task ProfileRequiresAuthenticationThroughTheFallbackPolicy()
     {
@@ -38,7 +41,9 @@ public sealed class ProfileTests(BankingApiFactory factory)
 
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
     }
+    #endregion
 
+    #region FACT? - Expired Token Is Rejected
     [Fact]
     public async Task ExpiredTokenIsRejected()
     {
@@ -49,8 +54,7 @@ public sealed class ProfileTests(BankingApiFactory factory)
         // A second in-memory host whose clock is an hour behind issues a token
         // that expired 30 minutes ago; the normal host must refuse it.
         var anHourAgo = new FakeTimeProvider(DateTimeOffset.UtcNow.AddHours(-1));
-        await using var pastHost = factory.WithWebHostBuilder(builder =>
-            builder.ConfigureTestServices(services => services.AddSingleton<TimeProvider>(anHourAgo)));
+        await using var pastHost = factory.WithWebHostBuilder(builder => builder.ConfigureTestServices(services => services.AddSingleton<TimeProvider>(anHourAgo)));
         using var pastClient = pastHost.CreateClient();
         client.UseBearerToken(await pastClient.GetAccessTokenAsync(email, cancellationToken));
 
@@ -58,4 +62,5 @@ public sealed class ProfileTests(BankingApiFactory factory)
 
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
     }
+    #endregion
 }

@@ -9,6 +9,7 @@ public sealed class LogoutTests(BankingApiFactory factory)
     private static readonly Uri LogoutUri = new("/api/auth/logout", UriKind.Relative);
     private static readonly Uri ProfileUri = new("/api/profile", UriKind.Relative);
 
+    #region FACT? - Token Is Rejected After Logout
     [Fact]
     public async Task TokenIsRejectedAfterLogout()
     {
@@ -25,7 +26,9 @@ public sealed class LogoutTests(BankingApiFactory factory)
         Assert.Equal(HttpStatusCode.NoContent, logout.StatusCode);
         Assert.Equal(HttpStatusCode.Unauthorized, afterLogout.StatusCode);
     }
+    #endregion
 
+    #region FACT? - Signing In Again After Logout Issues A Working Token
     [Fact]
     public async Task SigningInAgainAfterLogoutIssuesAWorkingToken()
     {
@@ -40,4 +43,5 @@ public sealed class LogoutTests(BankingApiFactory factory)
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
     }
+    #endregion
 }

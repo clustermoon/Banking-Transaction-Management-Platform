@@ -1,5 +1,4 @@
 using BankingAPI.Identity;
-using BankingAPI.Infrastructure;
 
 using Microsoft.AspNetCore.Identity;
 
@@ -23,8 +22,7 @@ public sealed partial class DemoDataSeeder(
                 continue;
             }
 
-            var registration = await customerRegistrar.RegisterAsync(
-                demoUser.Email, DemoCredentials.CustomerPassword, demoUser.DisplayName, cancellationToken);
+            var registration = await customerRegistrar.RegisterAsync(demoUser.Email, DemoCredentials.CustomerPassword, demoUser.DisplayName, cancellationToken);
 
             if (registration.User is null)
             {
