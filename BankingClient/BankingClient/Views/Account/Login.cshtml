@@ -1,0 +1,69 @@
+@model LoginViewModel
+@inject IWebHostEnvironment Environment
+@{
+    Layout = "_AuthLayout";
+    ViewData["Title"] = "Log in";
+    ViewData["Eyebrow"] = "Simple banking. Clear decisions.";
+    ViewData["Lead"] = "Access your accounts, review activity, and manage your money in one straightforward workspace.";
+    ViewData["TrustIcon"] = "bi-lock";
+    ViewData["TrustNote"] = "Protected sign-in for your Avenor account";
+}
+
+@section Headline {
+    Your finances,
+    <br />in clear view.
+}
+
+<div class="panel panel-body">
+    <h2 class="panel-title-lg">Welcome back</h2>
+    <p class="panel-subtitle">Log in to your Avenor account to continue.</p>
+
+    <form asp-action="Login" method="post" novalidate>
+        @if (Model.SessionExpired)
+        {
+            <div class="form-notice" role="status">
+                <i class="bi bi-info-circle" aria-hidden="true"></i>
+                <span>Your session has ended. Log in again to continue.</span>
+            </div>
+        }
+        <partial name="_FormAlert" />
+        <input asp-for="ReturnUrl" type="hidden" />
+
+        <div class="form-field">
+            <label asp-for="Email" class="form-label"></label>
+            <input asp-for="Email" class="form-control" placeholder="you@example.com" autocomplete="username" />
+            <span asp-validation-for="Email" class="field-error"></span>
+        </div>
+
+        <div class="form-field">
+            <label asp-for="Password" class="form-label"></label>
+            <input asp-for="Password" class="form-control" placeholder="Enter your password" autocomplete="current-password" />
+            <span asp-validation-for="Password" class="field-error"></span>
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-submit">
+            Log in
+            <i class="bi bi-arrow-right" aria-hidden="true"></i>
+        </button>
+    </form>
+
+    <p class="form-alt-action">New to Avenor? <a asp-action="Register">Create an account</a></p>
+
+    @if (!Environment.IsProduction())
+    {
+        <hr class="panel-divider" />
+        <aside class="info-box" aria-labelledby="demo-access-title">
+            <i class="bi bi-info-circle info-box-icon" aria-hidden="true"></i>
+            <div>
+                <p id="demo-access-title" class="info-box-title">Demo access</p>
+                <p class="info-box-text">Use any of these sample sign-in details:</p>
+                <ul class="demo-accounts">
+                    <li><code>alice@avenor.test</code></li>
+                    <li><code>ben@avenor.test</code></li>
+                    <li><code>cara@avenor.test</code></li>
+                </ul>
+                <p class="info-box-text mb-0">Password: <code class="demo-password">Avenor-Demo-2026</code></p>
+            </div>
+        </aside>
+    }
+</div>

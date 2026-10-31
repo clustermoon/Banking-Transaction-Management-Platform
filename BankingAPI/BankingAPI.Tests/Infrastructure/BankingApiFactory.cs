@@ -12,23 +12,27 @@ namespace BankingAPI.Tests.Infrastructure;
 /// </summary>
 public sealed class BankingApiFactory : WebApplicationFactory<Program>, IAsyncLifetime
 {
-    private readonly MsSqlContainer _sqlServer = new MsSqlBuilder("mcr.microsoft.com/mssql/server:2022-latest")
-        .WithImage("mcr.microsoft.com/mssql/server:2022-latest")
-        .Build();
+    private readonly MsSqlContainer _sqlServer = new MsSqlBuilder("mcr.microsoft.com/mssql/server:2022-latest").Build();
 
-    public async ValueTask InitializeAsync() => await _sqlServer.StartAsync();
+    public async ValueTask InitializeAsync()
+    {
+        await _sqlServer.StartAsync();
+
+        // Build the host now, so its startup migration runs exactly once. Left lazy, parallel
+        // test classes race to create the host and both try to create the database.
+        _ = Server;
+    }
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         // The container's default connection string targets master; point it at an app database.
-        var connectionString = new SqlConnectionStringBuilder(_sqlServer.GetConnectionString())
-        {
-            InitialCatalog = "Banking",
-        }.ConnectionString;
+        var connectionString = new SqlConnectionStringBuilder(_sqlServer.GetConnectionString()) { InitialCatalog = "Banking", }.ConnectionString;
 
         builder.UseEnvironment("Testing");
         builder.UseSetting("ConnectionStrings:Banking", connectionString);
         builder.UseSetting("Database:MigrateOnStartup", "true");
+        builder.UseSetting("Jwt:SigningKey", "test-only-signing-key-0123456789abcdef");
+        builder.UseSetting("Seeding:Enabled", "true");
     }
 
     public override async ValueTask DisposeAsync()

@@ -1,0 +1,11 @@
+@{
+    var formErrors = ViewData.ModelState.TryGetValue(string.Empty, out var entry) ? entry.Errors : null;
+}
+
+@if (formErrors is { Count: > 0 })
+{
+    <div class="form-alert" role="alert">
+        <i class="bi bi-exclamation-circle" aria-hidden="true"></i>
+        <span>@formErrors[0].ErrorMessage</span>
+    </div>
+}

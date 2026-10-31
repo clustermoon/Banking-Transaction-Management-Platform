@@ -1,0 +1,25 @@
+@{
+    Layout = "_Layout";
+}
+
+<div class="page-surface">
+    <div class="container auth-shell">
+        <div class="row align-items-center g-5">
+            <div class="col-lg-6 auth-intro">
+                <p class="auth-eyebrow">@ViewData["Eyebrow"]</p>
+                <h1 class="auth-headline">@RenderSection("Headline")</h1>
+                <p class="auth-lead">@ViewData["Lead"]</p>
+                <hr class="auth-rule" />
+                <p class="auth-trust">
+                    <i class="bi @ViewData["TrustIcon"]" aria-hidden="true"></i>
+                    @ViewData["TrustNote"]
+                </p>
+                <img class="auth-illustration" src="~/images/auth-building.svg" alt="" />
+            </div>
+
+            <div class="col-lg-6 col-xl-5 offset-xl-1 auth-form-column">
+                @RenderBody()
+            </div>
+        </div>
+    </div>
+</div>

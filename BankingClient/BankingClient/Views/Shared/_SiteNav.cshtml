@@ -1,0 +1,23 @@
+@{
+    var controller = ViewContext.RouteData.Values["controller"] as string;
+    bool IsCurrent(string name) => string.Equals(controller, name, StringComparison.OrdinalIgnoreCase);
+}
+
+@if (User.Identity?.IsAuthenticated == true)
+{
+    @* Each phase adds its page's link here when the page ships: Dashboard, Accounts, Move money, Statements. *@
+    <a class="site-nav-link @(IsCurrent("Profile") ? "active" : null)"
+       aria-current="@(IsCurrent("Profile") ? "page" : null)"
+       asp-controller="Profile" asp-action="Index">Profile</a>
+
+    <form asp-controller="Account" asp-action="Logout" method="post" class="d-inline">
+        <button type="submit" class="btn btn-outline-light">Log out</button>
+    </form>
+}
+else
+{
+    <a class="site-nav-link" asp-controller="Home" asp-action="Index">Home</a>
+    <a class="site-nav-link" asp-controller="Home" asp-action="Index" asp-fragment="features">Features</a>
+    <a class="btn btn-outline-light" asp-controller="Account" asp-action="Login">Log in</a>
+    <a class="btn btn-primary" asp-controller="Account" asp-action="Register">Create Account</a>
+}

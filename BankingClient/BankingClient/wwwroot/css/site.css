@@ -1,54 +1,32 @@
-html {
-  font-size: 14px;
-}
+/* ==========================================================================
+   Avenor: all client styles, in one file.
+   1. Tokens  2. Bootstrap overrides  3. Base  4. Layout
+   5. Shared components  6. Pages (landing, auth, profile)
+   ========================================================================== */
 
-@media (min-width: 768px) {
-  html {
-    font-size: 16px;
-  }
-}
-
+/* 1. Tokens: the only place raw values appear ----------------------------- */
 :root {
     --avenor-navy: #0d2547;
     --avenor-blue: #0b5cc5;
     --avenor-blue-dark: #094a9e;
     --avenor-sky: #e8f1fc;
+    --avenor-mist: #5692e414;
+    --avenor-white: #fff;
+    --avenor-focus: #258cfb;
+    --avenor-text: #3b4a61;
+    --avenor-muted: #64748b;
+    --avenor-border: #dbe4f0;
+    --avenor-page-start: #f8fbff;
+    --avenor-page-end: #eaf2fd;
+    --avenor-danger: #b42318;
+    --avenor-danger-bg: #fff5f5;
+    --avenor-danger-border: #f5c2c2;
+    --avenor-radius: 0.75rem;
+    --avenor-shadow: 0 1rem 2.5rem rgba(13, 37, 71, 0.08);
     --avenor-serif: Georgia, "Times New Roman", serif;
 }
 
-nav{
-    margin-left: 1em;
-    margin-right: 1em;
-}
-
-.btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
-  box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
-}
-
-html {
-  position: relative;
-  min-height: 100%;
-}
-
-.form-floating > .form-control-plaintext::placeholder, .form-floating > .form-control::placeholder {
-  color: var(--bs-secondary-color);
-  text-align: end;
-}
-
-.form-floating > .form-control-plaintext:focus::placeholder, .form-floating > .form-control:focus::placeholder {
-  text-align: start;
-}
-
-h1, h2 {
-    font-family: var(--avenor-serif);
-    color: var(--avenor-navy);
-}
-
-.brand {
-    font-family: var(--avenor-serif);
-    font-size: 1.75rem;
-}
-
+/* 2. Bootstrap overrides --------------------------------------------------- */
 .btn-primary {
     --bs-btn-bg: var(--avenor-blue);
     --bs-btn-border-color: var(--avenor-blue);
@@ -67,34 +45,368 @@ h1, h2 {
     --bs-btn-active-border-color: var(--avenor-blue-dark);
 }
 
+/* A visible focus ring on every interactive control (accessibility baseline). */
+.btn:focus-visible,
+.form-control:focus,
+.form-check-input:focus {
+    box-shadow: 0 0 0 0.1rem var(--avenor-white), 0 0 0 0.25rem var(--avenor-focus);
+}
+
+/* 3. Base ------------------------------------------------------------------ */
+html {
+    font-size: 14px;
+}
+
+@media (min-width: 768px) {
+    html {
+        font-size: 16px;
+    }
+}
+
+h1,
+h2 {
+    font-family: var(--avenor-serif);
+    color: var(--avenor-navy);
+}
+
+/* 4. Layout ---------------------------------------------------------------- */
 .site-header,
 .site-footer {
-    position: sticky;
     background: var(--avenor-navy);
-    color: #fff;
+    color: var(--avenor-white);
 }
 
-.site-header a:not(.btn),
-.site-footer a {
-    color: #fff;
-    text-decoration: none;
+    .site-header a:not(.btn),
+    .site-footer a {
+        color: var(--avenor-white);
+        text-decoration: none;
+    }
+
+.brand {
+    font-family: var(--avenor-serif);
+    font-size: 1.75rem;
 }
 
+.site-nav-link {
+    padding-bottom: 0.25rem;
+    border-bottom: 2px solid transparent;
+}
+
+    .site-nav-link:hover,
+    .site-nav-link.active {
+        border-bottom-color: var(--avenor-white);
+    }
+
+/* main fills the space between header and footer; a page surface inside it
+   stretches to fill main, so no white band shows on short pages. */
+main {
+    display: flex;
+    flex-direction: column;
+}
+
+.site-footer {
+    padding: 1.25rem 0;
+    font-size: 0.875rem;
+}
+
+.site-footer-inner {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+}
+
+    .site-footer-inner .brand {
+        font-size: 1.4rem;
+    }
+
+    .site-footer-inner > * + * {
+        padding-left: 0.75rem;
+        border-left: 1px solid rgba(255, 255, 255, 0.4);
+    }
+
+/* 5. Shared components ----------------------------------------------------- */
+
+/* Page frame for app pages */
+.page-surface {
+    flex: 1 0 auto;
+    background: linear-gradient(135deg, var(--avenor-page-start), var(--avenor-page-end));
+}
+
+.page-content {
+    padding: 4rem 0;
+}
+
+.page-title {
+    font-size: clamp(2.25rem, 4vw, 3rem);
+    margin-bottom: 0.5rem;
+}
+
+.page-subtitle,
+.panel-subtitle {
+    color: var(--avenor-muted);
+}
+
+.page-subtitle {
+    margin-bottom: 2rem;
+}
+
+/* Breadcrumb */
+.breadcrumb-trail {
+    display: flex;
+    gap: 0.75rem;
+    padding: 0;
+    margin-bottom: 1.5rem;
+    list-style: none;
+    font-size: 0.875rem;
+    color: var(--avenor-muted);
+}
+
+    .breadcrumb-trail li + li::before {
+        content: "›";
+        margin-right: 0.75rem;
+    }
+
+    .breadcrumb-trail a {
+        color: var(--avenor-blue);
+        text-decoration: none;
+    }
+
+/* Panels (cards) */
+.panel {
+    background: var(--avenor-white);
+    border: 1px solid var(--avenor-border);
+    border-radius: var(--avenor-radius);
+    box-shadow: var(--avenor-shadow);
+}
+
+.panel-body {
+    padding: 2.5rem;
+}
+
+.panel-title {
+    font-size: 1.75rem;
+    margin-bottom: 0.5rem;
+}
+
+.panel-title-lg {
+    font-size: 2.25rem;
+    margin-bottom: 0.75rem;
+}
+
+.panel-divider {
+    margin: 1.5rem 0;
+    border-color: var(--avenor-border);
+    opacity: 1;
+}
+
+/* Icon tile (Bootstrap Icons inside a soft square) */
+.icon-tile {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 3rem;
+    height: 3rem;
+    margin-bottom: 1.25rem;
+    border-radius: var(--avenor-radius);
+    background: var(--avenor-sky);
+    color: var(--avenor-blue);
+    font-size: 1.35rem;
+}
+
+/* Forms */
+.form-field {
+    margin-bottom: 1.25rem;
+}
+
+.form-label {
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: var(--avenor-navy);
+}
+
+.form-control {
+    min-height: 3rem;
+    border-color: var(--avenor-border);
+}
+
+    .form-control.input-validation-error {
+        border-color: var(--avenor-danger);
+    }
+
+.field-help {
+    margin: 0.4rem 0 0;
+    font-size: 0.8rem;
+    color: var(--avenor-muted);
+}
+
+.field-error {
+    display: block;
+    margin-top: 0.35rem;
+    font-size: 0.85rem;
+    color: var(--avenor-danger);
+}
+
+.form-alert {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.85rem 1rem;
+    margin-bottom: 1.5rem;
+    border: 1px solid var(--avenor-danger-border);
+    border-radius: 0.5rem;
+    background: var(--avenor-danger-bg);
+    color: var(--avenor-danger);
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.form-notice {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.85rem 1rem;
+    margin-bottom: 1.5rem;
+    border: 1px solid var(--avenor-border);
+    border-radius: 0.5rem;
+    background: var(--avenor-sky);
+    color: var(--avenor-blue-dark);
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.btn-submit {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.6rem;
+    width: 100%;
+    min-height: 3rem;
+    margin-top: 0.5rem;
+    font-weight: 600;
+}
+
+.form-alt-action {
+    margin: 1.5rem 0 0;
+    text-align: center;
+    color: var(--avenor-muted);
+}
+
+    .form-alt-action a {
+        font-weight: 600;
+        color: var(--avenor-blue);
+        text-decoration: none;
+    }
+
+/* Info box and inline notes */
+.info-box {
+    display: flex;
+    gap: 0.9rem;
+    padding: 1rem 1.25rem;
+    border: 1px solid var(--avenor-border);
+    border-radius: 0.5rem;
+    background: var(--avenor-page-start);
+}
+
+.info-box-icon,
+.info-line .bi {
+    color: var(--avenor-blue);
+}
+
+.info-box-title {
+    margin-bottom: 0.25rem;
+    font-weight: 600;
+    color: var(--avenor-navy);
+}
+
+.info-box-text {
+    margin-bottom: 0.5rem;
+    font-size: 0.875rem;
+    color: var(--avenor-muted);
+}
+
+.info-line {
+    display: flex;
+    gap: 0.6rem;
+    margin: 0;
+    font-size: 0.875rem;
+    color: var(--avenor-text);
+}
+
+.demo-accounts {
+    padding: 0;
+    margin: 0 0 0.5rem;
+    list-style: none;
+}
+
+    .demo-accounts code,
+    .demo-password {
+        color: var(--avenor-text);
+    }
+
+.demo-password {
+    font-weight: 700;
+}
+
+/* Detail lists (label/value rows) */
+.detail-list {
+    margin: 1.5rem 0 0;
+    border-top: 1px solid var(--avenor-border);
+}
+
+.detail-row {
+    display: grid;
+    grid-template-columns: 12rem 1fr;
+    align-items: center;
+    padding: 1.25rem 0;
+    border-bottom: 1px solid var(--avenor-border);
+}
+
+    .detail-row dt {
+        font-weight: 400;
+        font-size: 0.9rem;
+        color: var(--avenor-muted);
+    }
+
+    .detail-row dd {
+        margin: 0;
+        font-weight: 600;
+        color: var(--avenor-navy);
+    }
+
+.badge-soft {
+    display: inline-block;
+    padding: 0.35rem 0.7rem;
+    border-radius: 0.5rem;
+    background: var(--avenor-sky);
+    color: var(--avenor-blue-dark);
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+/* 6. Pages ----------------------------------------------------------------- */
+
+/* Landing page */
 .hero {
     padding: 6rem 0;
-    background: linear-gradient(90deg, rgba(255, 255, 255, 0.9) 35%, rgba(255, 255, 255, 0) 70%), url("../images/company_building.webp") right center / cover no-repeat;
+    background: linear-gradient(90deg, rgba(255, 255, 255, 0.9) 35%, rgba(255, 255, 255, 0) 70%), url("../images/company-building.webp") right center / cover no-repeat;
 }
 
-.hero h1 {
-    font-size: clamp(2.5rem, 5vw, 4.5rem);
-    line-height: 1.1;
-    text-shadow: 0 1px 3px rgba(255, 255, 255, 0.9);
-}
+    .hero h1 {
+        font-size: clamp(2.5rem, 5vw, 4.5rem);
+        line-height: 1.1;
+        text-shadow: 0 1px 3px rgba(255, 255, 255, 0.9);
+    }
 
 .features {
     padding: 3rem 0;
-    background: #f7f9fc;
-    background-color: #5692e414;
+    background: var(--avenor-mist);
+}
+
+.feature-icon {
+    width: 5em;
+    height: auto;
 }
 
 .showcase {
@@ -109,14 +421,80 @@ h1, h2 {
     object-fit: cover;
 }
 
-.banner-image{
+/* Login and register (Views/Account/_AuthLayout.cshtml) */
+.auth-shell {
+    padding-top: 4rem;
+    padding-bottom: 4rem;
+}
+
+.auth-eyebrow {
+    margin-bottom: 1.5rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--avenor-blue);
+}
+
+.auth-headline {
+    font-size: clamp(2.75rem, 5vw, 3.75rem);
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+    margin-bottom: 1.5rem;
+}
+
+.auth-lead {
+    max-width: 30rem;
+    font-size: 1.1rem;
+    line-height: 1.7;
+    color: var(--avenor-text);
+}
+
+.auth-rule {
+    width: 4rem;
+    margin: 2rem 0;
+    border-top: 3px solid var(--avenor-blue);
+    opacity: 1;
+}
+
+.auth-trust {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    font-size: 0.875rem;
+    color: var(--avenor-muted);
+}
+
+    .auth-trust .bi {
+        color: var(--avenor-blue);
+    }
+
+.auth-illustration {
     display: block;
     width: 100%;
-    height: 50%;
-    object-fit:cover;
+    max-width: 30rem;
+    margin-top: 3.5rem;
 }
 
-.feature_icon{
-    width: 5em;
+@media (max-width: 991.98px) {
+    .auth-illustration {
+        display: none;
+    }
 }
 
+/* Profile */
+.profile-panel {
+    overflow: hidden;
+}
+
+.profile-security {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+@media (min-width: 992px) {
+    .profile-security {
+        border-left: 1px solid var(--avenor-border);
+    }
+}
