@@ -22,11 +22,32 @@ A full-stack banking and transaction management platform built with ASP.NET Core
 
 ## Overview
 
-This project began as a C# banking application I developed during my computer science coursework. The original assignment gave me a foundation, but I wanted to take it further. I decided to rebuild the application under my own direction while reusing what I'd already developed and learned. This gave me the opportunity to make deliberate decisions about the application's structure. With the added freedom I expanded the initial projce scope into a **Banking & Transaction Management Platform**. 
+This project began as a C# banking application I developed during my computer science coursework. The original assignment gave me a foundation, but I wanted to take it further. I decided to rebuild the application under my own direction while reusing what I'd already developed and learned. This gave me the opportunity to make deliberate decisions about the application's structure. With the added freedom I expanded the initial project scope into a **Banking & Transaction Management Platform**. 
+
+## Design Decisions
+
+The reasoning behind the architecture, including what each choice costs, is in [docs/DESIGN_DECISIONS.md](docs/DESIGN_DECISIONS.md). A few highlights:
+
+- **Logout revokes tokens on the server**, at the cost of one user lookup per request.
+- **The browser never sees the API token**: it lives inside the client's encrypted, HttpOnly session cookie.
+- **Every API endpoint requires authentication** unless it explicitly opts out.
+- **Tests run against real SQL Server**, because constraints, transactions, and locking are what correctness depends on.
+
+The document also lists the known limitations, such as no MFA and no rate limiting, and what production would need instead.
 
 ## Getting Started
 
 **Prerequisites:** Docker Desktop. For local development and tests you also need the .NET 10 SDK.
+
+You can get the required prerequisites from their respective download pages:
+- [Docker Desktop](https://docs.docker.com/desktop/setup/install/windows-install/)
+- [.NET 10 SDK](https://dotnet.microsoft.com/en-us/download/dotnet/10.0)
+
+
+Clone the Project to a source folder onto your local machine.
+Ensure Docker Desktop is running.
+
+Then, to start call the following from the respository root:
 
 ```bash
 docker compose up --build -d
@@ -42,17 +63,7 @@ The first start takes a minute while SQL Server initializes. Then:
 
 Startup is ordered by health checks: the API starts once SQL Server accepts queries, and the client starts once the API reports ready.
 
-### Demo Accounts
-
-The demo seeds three customers, so you can sign in without registering:
-
-| Email | Password | Use it to see |
-| --- | --- | --- |
-| `alice@avenor.test` | `Avenor-Demo-2026` | Everyday banking |
-| `ben@avenor.test` | `Avenor-Demo-2026` | Customer isolation: Ben can never see Alice's accounts |
-| `cara@avenor.test` | `Avenor-Demo-2026` | Edge cases: low balance, frozen and closed accounts |
-
-**Why the passwords are public:** they exist only to make the demo explorable. Seeding is off by default, runs only in the Docker demo and local development, and the API refuses to start if it's enabled in Production. Accounts lock for 15 minutes after five failed sign-ins, so if one demo account locks, use another or reset with `docker compose down -v`.
+---
 
 ### Exploring the API
 
@@ -79,6 +90,20 @@ Open http://localhost:5002, choose **Log in**, and sign in with any demo account
 - **Sign out everywhere.** Sign in as Alice in a normal window and a private window. Log out in one, then refresh the profile in the other: the client finds the session revoked and asks you to log in again.
 - **Register.** Create your own account. Validation errors from the API appear beside the field they belong to.
 
+#### Demo Accounts
+
+The demo seeds three customers, so you can sign in without registering:
+
+| Email | Password | Use it to see |
+| --- | --- | --- |
+| `alice@avenor.test` | `Avenor-Demo-2026` | Everyday banking |
+| `ben@avenor.test` | `Avenor-Demo-2026` | Customer isolation: Ben can never see Alice's accounts |
+| `cara@avenor.test` | `Avenor-Demo-2026` | Edge cases: low balance, frozen and closed accounts |
+
+**Why the passwords are public:** they exist only to make the demo explorable. Seeding is off by default, runs only in the Docker demo and local development, and the API refuses to start if it's enabled in Production. Accounts lock for 15 minutes after five failed sign-ins, so if one demo account locks, use another or reset with `docker compose down -v`.
+
+---
+
 ### Configuration
 
 The demo runs with documented, development-only secrets defined in `docker-compose.yml`. Every port is bound to `127.0.0.1`, so nothing is reachable from other machines. To use your own values, set these environment variables before starting the stack:
@@ -92,7 +117,7 @@ SQL Server keeps the password from the volume's first start, so if you change `M
 Outside the Docker demo and local development, the API refuses to start without a signing key, so a misconfigured deployment can't run with a missing or weak key.
 The client's session cookies are encrypted with keys that live inside its container, so recreating the client container (for example, `docker compose up --build`) signs everyone out. A production deployment would persist and protect those keys.
 
-### Resetting
+#### Resetting
 
 ```bash
 docker compose down -v
@@ -100,7 +125,7 @@ docker compose down -v
 
 This removes the database volume, so the next `up` starts from an empty database.
 
-### Port conflicts
+#### Port conflicts
 
 The stack binds ports 1433, 5001, and 5002 on `127.0.0.1`. If one is in use (a local SQL Server instance is the usual cause), stop that service or change the host side of the port mapping in `docker-compose.yml`.
 
@@ -125,7 +150,7 @@ dotnet test BankingClient/BankingClient.slnx
 API integration tests start their own disposable SQL Server container through Testcontainers, so Docker must be running. Client tests are fast unit tests with no external dependencies.
 
 ## Authors
-Hi, my name is [David Wommack](https://github.com/clustermoon). I created this project as a portfolio piece from the incredible advice of the amazing university faculty and staff that have supported me as I shifted from outside industries into the computer science industry. I have 16 years of hobbyist programming, but as of 3 years ago(2023) shifted into treating my passion as my profession, seeking to attain a degree and pursuing my life's passion.
+Hi, my name is [David Wommack](https://github.com/clustermoon). I created this project as a portfolio piece from the incredible advice of the amazing university faculty and staff that have supported me as I shifted from outside industries into the computer science industry. I have 16 years of hobbyist programming, but as of 3 years ago(2023), I shifted into treating my passion as my profession, seeking to attain a degree and pursuing my life's passion of software development. Any Critical feedback is welcome, as I push to constantly improve.
 
 ## Feedback and Contributing
 
