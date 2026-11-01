@@ -42,7 +42,7 @@ internal static class AuthenticationServiceCollectionExtensions
         });
 
         // Deny by default: an endpoint someone forgets to protect is still protected.
-        services.AddAuthorizationBuilder().SetFallbackPolicy(new AuthorizationPolicyBuilder().RequireAuthenticatedUser().Build());
+        services.AddAuthorizationBuilder().SetFallbackPolicy(new AuthorizationPolicyBuilder().RequireAuthenticatedUser().Build()).AddPolicy(Policies.Customer, policy => policy.RequireRole(Roles.Customer));
 
         return services;
     }
