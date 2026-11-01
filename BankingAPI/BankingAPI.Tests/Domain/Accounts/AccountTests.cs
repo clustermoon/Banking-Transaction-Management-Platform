@@ -1,0 +1,81 @@
+using BankingAPI.Data;
+using BankingAPI.Domain;
+using BankingAPI.Domain.Accounts;
+using BankingAPI.Tests.Infrastructure;
+
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+
+namespace BankingAPI.Tests.Domain.Accounts;
+
+public sealed class AccountTests(BankingApiFactory factory)
+{
+    private static Account OpenAccount() => Account.Open(Guid.NewGuid(), AccountType.Checking, "  Everyday Checking  ", "1234567890", DateTimeOffset.UtcNow);
+
+    #region FACT? - Opened Account Is Active With Zero Balance
+    [Fact]
+    public void OpenedAccountIsActiveWithZeroBalance()
+    {
+        var account = OpenAccount();
+
+        Assert.Equal(AccountStatus.Active, account.Status);
+        Assert.Equal(0m, account.Balance);
+        Assert.Equal("Everyday Checking", account.Name);
+    }
+    #endregion
+
+    #region FACT? - Frozen Account Can Be Unfrozen
+    [Fact]
+    public void FrozenAccountCanBeUnfrozen()
+    {
+        var account = OpenAccount();
+
+        account.Freeze();
+        account.Unfreeze();
+
+        Assert.Equal(AccountStatus.Active, account.Status);
+    }
+    #endregion
+
+    #region FACT? - Only An Active Account Can Be Frozen
+    [Fact]
+    public void OnlyAnActiveAccountCanBeFrozen()
+    {
+        var account = OpenAccount();
+        account.Freeze();
+
+        Assert.Throws<BusinessRuleException>(account.Freeze);
+    }
+    #endregion
+
+    #region FACT? - Closed Account Is Final
+    [Fact]
+    public void ClosedAccountIsFinal()
+    {
+        var account = OpenAccount();
+        account.Close();
+
+        Assert.Throws<BusinessRuleException>(account.Freeze);
+        Assert.Throws<BusinessRuleException>(account.Unfreeze);
+        Assert.Throws<BusinessRuleException>(account.Close);
+    }
+    #endregion
+
+    #region FACT? - Account Holding Money Cannot Be Closed
+    [Fact]
+    public async Task AccountHoldingMoneyCannotBeClosed()
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var accountId = await DatabaseTestData.CreateAccountAsync(factory, cancellationToken);
+        using var scope = factory.Services.CreateScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<BankingDbContext>();
+
+        // A balance can only come from the database, which is how real accounts are loaded.
+        await dbContext.Database.ExecuteSqlAsync($"UPDATE Accounts SET Balance = 25.00 WHERE Id = {accountId}", cancellationToken);
+        var account = await dbContext.Accounts.SingleAsync(candidate => candidate.Id == accountId, cancellationToken);
+
+        var error = Assert.Throws<BusinessRuleException>(account.Close);
+        Assert.Equal("An account can only be closed once its balance is zero.", error.Message);
+    }
+    #endregion
+}
