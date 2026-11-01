@@ -13,7 +13,7 @@ namespace BankingAPI.Tests.Infrastructure;
 /// </summary>
 internal static class DatabaseTestData
 {
-    public static async Task<Guid> CreateAccountAsync(BankingApiFactory factory, CancellationToken cancellationToken)
+    public static async Task<TestAccount> CreateAccountAsync(BankingApiFactory factory, CancellationToken cancellationToken)
     {
         using var client = factory.CreateClient();
         var email = await client.RegisterUserAsync(cancellationToken);
@@ -27,6 +27,6 @@ internal static class DatabaseTestData
         dbContext.Accounts.Add(account);
         await dbContext.SaveChangesAsync(cancellationToken);
 
-        return account.Id;
+        return new TestAccount(account.Id, owner.Id);
     }
 }

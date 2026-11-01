@@ -66,13 +66,14 @@ public sealed class AccountTests(BankingApiFactory factory)
     public async Task AccountHoldingMoneyCannotBeClosed()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
-        var accountId = await DatabaseTestData.CreateAccountAsync(factory, cancellationToken);
+        var testAccount = await DatabaseTestData.CreateAccountAsync(factory, cancellationToken);
         using var scope = factory.Services.CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<BankingDbContext>();
 
         // A balance can only come from the database, which is how real accounts are loaded.
-        await dbContext.Database.ExecuteSqlAsync($"UPDATE Accounts SET Balance = 25.00 WHERE Id = {accountId}", cancellationToken);
-        var account = await dbContext.Accounts.SingleAsync(candidate => candidate.Id == accountId, cancellationToken);
+        await dbContext.Database.ExecuteSqlAsync(
+            $"UPDATE Accounts SET Balance = 25.00 WHERE Id = {testAccount.Id}", cancellationToken);
+        var account = await dbContext.Accounts.SingleAsync(candidate => candidate.Id == testAccount.Id, cancellationToken);
 
         var error = Assert.Throws<BusinessRuleException>(account.Close);
         Assert.Equal("An account can only be closed once its balance is zero.", error.Message);

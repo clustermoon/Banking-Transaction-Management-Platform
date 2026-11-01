@@ -10,6 +10,7 @@ public sealed class IdempotencyRecord
     // For EF Core. Records are written by the ledger service.
     private IdempotencyRecord() { }
 
+    #region Idempotency Properties
     public Guid UserId { get; private set; }
 
     public Guid Key { get; private set; }
@@ -22,4 +23,18 @@ public sealed class IdempotencyRecord
     public long LedgerEntryId { get; private set; }
 
     public DateTimeOffset CreatedAt { get; private set; }
+    #endregion
+
+    #region Idempotency Methods
+    internal static IdempotencyRecord Create(
+    Guid userId, Guid key, string requestHash, long ledgerEntryId, DateTimeOffset createdAt) => new()
+    {
+        UserId = userId,
+        Key = key,
+        RequestHash = requestHash,
+        LedgerEntryId = ledgerEntryId,
+        CreatedAt = createdAt,
+    };
+    #endregion
+
 }
