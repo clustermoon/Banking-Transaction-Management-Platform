@@ -7,4 +7,6 @@ public enum LedgerEntryType
 {
     Deposit,
     Withdrawal,
+    TransferOut,
+    TransferIn
 }

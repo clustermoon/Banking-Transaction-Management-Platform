@@ -94,4 +94,30 @@ public sealed class SchemaTests(BankingApiFactory factory)
     }
     #endregion
 
+    #region THEORY? - Ledger Entries Must Have The Shape Of Their Type
+    [Theory]
+    [InlineData("TransferOut", false)]
+    [InlineData("Deposit", true)]
+    public async Task LedgerEntriesMustHaveTheShapeOfTheirType(string type, bool includeTransferFields)
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var account = await DatabaseTestData.CreateAccountAsync(factory, cancellationToken);
+        var counterparty = await DatabaseTestData.CreateAccountAsync(factory, cancellationToken);
+        using var scope = factory.Services.CreateScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<BankingDbContext>();
+
+        // A transfer entry missing its transfer fields, or a deposit carrying them.
+        Guid? transferId = includeTransferFields ? Guid.NewGuid() : null;
+        Guid? counterpartyId = includeTransferFields ? counterparty.Id : null;
+
+        var error = await Assert.ThrowsAsync<SqlException>(() => dbContext.Database.ExecuteSqlAsync(
+            $"""
+            INSERT INTO LedgerEntries (AccountId, Type, Amount, BalanceAfter, Description, OccurredAt, TransferId, CounterpartyAccountId)
+            VALUES ({account.Id}, {type}, 10.00, 10.00, 'Test', SYSDATETIMEOFFSET(), {transferId}, {counterpartyId})
+            """,
+            cancellationToken));
+
+        Assert.Contains("CK_LedgerEntries_TransferShape", error.Message, StringComparison.Ordinal);
+    }
+    #endregion
 }
