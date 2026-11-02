@@ -19,6 +19,8 @@ A full-stack banking and transaction management platform built with ASP.NET Core
 - **Tested against the real database:** integration tests run against SQL Server in a disposable container, not an in-memory fake.
 - **Gated by CI:** every pull request is built, format-checked, tested, and smoke-tested with the same `docker compose up` described below.
 - **The browser never sees the API token:** the client keeps it inside an encrypted, HttpOnly session cookie and attaches it to API calls server-side, so scripts in the page can't read it.
+- **Accounts can't be overdrawn, even under concurrency.** Every balance change is one conditional SQL update that holds the account's row lock, so simultaneous withdrawals are applied one at a time against the latest balance. A test fires 20 withdrawals at once against an account that can cover 10: exactly 10 succeed.
+- **History can't be rewritten.** The ledger is append-only: database triggers reject every `UPDATE` and `DELETE`, and every balance is fully explained by its ledger entries, verified by an invariant checker.
 
 ## Overview
 
@@ -65,6 +67,20 @@ Startup is ordered by health checks: the API starts once SQL Server accepts quer
 
 ---
 
+### Demo Accounts
+
+The demo seeds three customers, so you can sign in without registering:
+
+| Customer | Passwords |Accounts | Use it to see |
+| --- | --- | --- | --- |
+| `alice@avenor.test` | Avenor-Demo-2026 | Everyday Checking `7301004821`, Holiday Savings `7301007196` | Everyday banking: paychecks, bills, and savings |
+| `ben@avenor.test` | Avenor-Demo-2026 |  Everyday Checking `7301002457` | Customer isolation: Ben can never see Alice's accounts |
+| `cara@avenor.test` | Avenor-Demo-2026 |  Everyday Checking `7301003390`, Rainy Day Savings `7301005512`, Old Checking `7301006604` | Edge cases: a $23.40 balance, a frozen account, and a closed one |
+
+**Why the passwords are public:** they exist only to make the demo explorable. Seeding is off by default, runs only in the Docker demo and local development, and the API refuses to start if it's enabled in Production. Accounts lock for 15 minutes after five failed sign-ins, so if one demo account locks, use another or reset with `docker compose down -v`.
+
+---
+
 ### Exploring the API
 
 The API ships with an interactive reference, built with [Scalar](https://scalar.com) from the API's OpenAPI document, so you can call every endpoint from your browser. It's available in the Docker demo and in local development, and disabled in any other environment.
@@ -90,18 +106,6 @@ Open http://localhost:5002, choose **Log in**, and sign in with any demo account
 - **Sign out everywhere.** Sign in as Alice in a normal window and a private window. Log out in one, then refresh the profile in the other: the client finds the session revoked and asks you to log in again.
 - **Register.** Create your own account. Validation errors from the API appear beside the field they belong to.
 
-#### Demo Accounts
-
-The demo seeds three customers, so you can sign in without registering:
-
-| Email | Password | Use it to see |
-| --- | --- | --- |
-| `alice@avenor.test` | `Avenor-Demo-2026` | Everyday banking |
-| `ben@avenor.test` | `Avenor-Demo-2026` | Customer isolation: Ben can never see Alice's accounts |
-| `cara@avenor.test` | `Avenor-Demo-2026` | Edge cases: low balance, frozen and closed accounts |
-
-**Why the passwords are public:** they exist only to make the demo explorable. Seeding is off by default, runs only in the Docker demo and local development, and the API refuses to start if it's enabled in Production. Accounts lock for 15 minutes after five failed sign-ins, so if one demo account locks, use another or reset with `docker compose down -v`.
-
 ---
 
 ### Configuration
@@ -125,7 +129,13 @@ docker compose down -v
 
 This removes the database volume, so the next `up` starts from an empty database.
 
-#### Port conflicts
+#### Closing the API, Client & SqlServer
+```
+docker compose down
+```
+This tells docker to close down the running instances of the API, Client and Sql Server.
+
+### Port conflicts
 
 The stack binds ports 1433, 5001, and 5002 on `127.0.0.1`. If one is in use (a local SQL Server instance is the usual cause), stop that service or change the host side of the port mapping in `docker-compose.yml`.
 
