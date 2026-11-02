@@ -62,7 +62,8 @@ public sealed class DemoSeedingTests(BankingApiFactory factory)
         var entryCount = await dbContext.LedgerEntries.CountAsync(entry => demoAccountIds.Contains(entry.AccountId), cancellationToken);
 
         Assert.Equal(DemoBankingData.Accounts.Count, demoAccountIds.Count);
-        Assert.Equal(DemoBankingData.Transactions.Count, entryCount);
+        var expectedEntries = DemoBankingData.Transactions.Sum(transaction => transaction.Type == LedgerEntryType.TransferOut ? 2 : 1);
+        Assert.Equal(expectedEntries, entryCount);
     }
     #endregion
 
@@ -75,9 +76,7 @@ public sealed class DemoSeedingTests(BankingApiFactory factory)
         var dbContext = scope.ServiceProvider.GetRequiredService<BankingDbContext>();
         var numbers = DemoBankingData.Accounts.Select(demo => demo.AccountNumber).ToList();
 
-        var accounts = await dbContext.Accounts.AsNoTracking()
-            .Where(account => numbers.Contains(account.AccountNumber))
-            .ToDictionaryAsync(account => account.AccountNumber, cancellationToken);
+        var accounts = await dbContext.Accounts.AsNoTracking().Where(account => numbers.Contains(account.AccountNumber)).ToDictionaryAsync(account => account.AccountNumber, cancellationToken);
 
         Assert.Equal(DemoBankingData.Accounts.Count, accounts.Count);
         foreach (var demo in DemoBankingData.Accounts)
@@ -87,6 +86,9 @@ public sealed class DemoSeedingTests(BankingApiFactory factory)
 
         Assert.Equal(23.40m, accounts[DemoBankingData.CaraCheckingNumber].Balance);
         Assert.Equal(0m, accounts[DemoBankingData.CaraClosedCheckingNumber].Balance);
+        Assert.Equal(3601.05m, accounts[DemoBankingData.AliceCheckingNumber].Balance);
+        Assert.Equal(6500.00m, accounts[DemoBankingData.AliceSavingsNumber].Balance);
+        Assert.Equal(4237.55m, accounts[DemoBankingData.BenCheckingNumber].Balance);
     }
     #endregion
 

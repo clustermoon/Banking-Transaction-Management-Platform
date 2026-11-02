@@ -28,27 +28,28 @@ public static class DemoBankingData
 
     public static readonly IReadOnlyList<DemoTransaction> Transactions =
     [
-        // Alice: Everyday Checking
+        // Alice: Everyday Checking 
         new(AliceCheckingNumber, 90, LedgerEntryType.Deposit, 4000.00m, "Opening deposit"),
         new(AliceCheckingNumber, 84, LedgerEntryType.Withdrawal, 62.17m, "Green Market groceries"),
         new(AliceCheckingNumber, 75, LedgerEntryType.Deposit, 2000.00m, "Acme Corp payroll"),
         new(AliceCheckingNumber, 70, LedgerEntryType.Withdrawal, 86.45m, "Riverside Electric"),
         new(AliceCheckingNumber, 66, LedgerEntryType.Withdrawal, 1450.00m, "Maple Street rent"),
+        new(AliceCheckingNumber, 60, LedgerEntryType.TransferOut, 500.00m, "Monthly savings", AliceSavingsNumber),
         new(AliceCheckingNumber, 52, LedgerEntryType.Withdrawal, 100.00m, "ATM withdrawal"),
         new(AliceCheckingNumber, 45, LedgerEntryType.Deposit, 2000.00m, "Acme Corp payroll"),
         new(AliceCheckingNumber, 40, LedgerEntryType.Withdrawal, 91.20m, "Riverside Electric"),
         new(AliceCheckingNumber, 36, LedgerEntryType.Withdrawal, 1450.00m, "Maple Street rent"),
+        new(AliceCheckingNumber, 30, LedgerEntryType.TransferOut, 500.00m, "Monthly savings", AliceSavingsNumber),
         new(AliceCheckingNumber, 22, LedgerEntryType.Withdrawal, 48.75m, "Green Market groceries"),
+        new(AliceCheckingNumber, 20, LedgerEntryType.TransferOut, 75.00m, "Concert tickets", BenCheckingNumber),
         new(AliceCheckingNumber, 15, LedgerEntryType.Deposit, 2000.00m, "Acme Corp payroll"),
         new(AliceCheckingNumber, 10, LedgerEntryType.Withdrawal, 79.90m, "Riverside Electric"),
         new(AliceCheckingNumber, 6, LedgerEntryType.Withdrawal, 1450.00m, "Maple Street rent"),
+        new(AliceCheckingNumber, 3, LedgerEntryType.TransferOut, 500.00m, "Monthly savings", AliceSavingsNumber),
         new(AliceCheckingNumber, 2, LedgerEntryType.Withdrawal, 5.48m, "Coffee Corner"),
 
-        // Alice: Holiday Savings (monthly deposits; Phase 5 turns these into transfers from checking)
+        // Alice: Holiday Savings
         new(AliceSavingsNumber, 88, LedgerEntryType.Deposit, 5000.00m, "Opening deposit"),
-        new(AliceSavingsNumber, 60, LedgerEntryType.Deposit, 500.00m, "Monthly savings deposit"),
-        new(AliceSavingsNumber, 30, LedgerEntryType.Deposit, 500.00m, "Monthly savings deposit"),
-        new(AliceSavingsNumber, 3, LedgerEntryType.Deposit, 500.00m, "Monthly savings deposit"),
 
         // Ben: Everyday Checking
         new(BenCheckingNumber, 80, LedgerEntryType.Deposit, 2500.00m, "Opening deposit"),

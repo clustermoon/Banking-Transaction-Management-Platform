@@ -88,15 +88,26 @@ public sealed partial class DemoDataSeeder(
         {
             var (accountId, ownerId) = accounts[demo.AccountNumber];
             clock.SetUtcNow(now.AddDays(-demo.DaysAgo));
-            var request = new LedgerRequest(ownerId, accountId, demo.Amount, demo.Description, IdempotencyKeyFor(demo));
+            var key = IdempotencyKeyFor(demo);
 
-            if (demo.Type == LedgerEntryType.Deposit)
+            switch (demo.Type)
             {
-                await ledger.DepositAsync(request, cancellationToken);
-            }
-            else
-            {
-                await ledger.WithdrawAsync(request, cancellationToken);
+                case LedgerEntryType.Deposit:
+                    await ledger.DepositAsync(new LedgerRequest(ownerId, accountId, demo.Amount, demo.Description, key), cancellationToken);
+                    break;
+
+                case LedgerEntryType.Withdrawal:
+                    await ledger.WithdrawAsync(new LedgerRequest(ownerId, accountId, demo.Amount, demo.Description, key), cancellationToken);
+                    break;
+
+                case LedgerEntryType.TransferOut:
+                    var destination = demo.ToAccountNumber ?? throw new InvalidOperationException($"Demo transfer from {demo.AccountNumber} has no destination.");
+                    await ledger.TransferAsync(new TransferRequest(ownerId, accountId, destination, demo.Amount, demo.Description, key), cancellationToken);
+                    break;
+
+                default:
+                    // An incoming transfer is recorded by its outgoing half, never written on its own.
+                    throw new InvalidOperationException($"Demo transactions can't be of type {demo.Type}.");
             }
         }
     }
