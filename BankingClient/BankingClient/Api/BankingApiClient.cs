@@ -146,12 +146,15 @@ public sealed class BankingApiClient(HttpClient httpClient) : IBankingApiClient
     #endregion
 
     #region Move Money
-    public Task<ApiResult<MoneyMovementResult>> DepositAsync(Guid accountId, MoneyMovementRequest request, Guid idempotencyKey, CancellationToken cancellationToken) => MoveMoneyAsync(accountId, "deposits", request, idempotencyKey, cancellationToken);
+    public Task<ApiResult<MoneyMovementResult>> DepositAsync(Guid accountId, MoneyMovementRequest request, Guid idempotencyKey, CancellationToken cancellationToken) => SendMoneyMovementAsync(accountId, "deposits", request, idempotencyKey, cancellationToken);
 
-    public Task<ApiResult<MoneyMovementResult>> WithdrawAsync(Guid accountId, MoneyMovementRequest request, Guid idempotencyKey, CancellationToken cancellationToken) => MoveMoneyAsync(accountId, "withdrawals", request, idempotencyKey, cancellationToken);
+    public Task<ApiResult<MoneyMovementResult>> WithdrawAsync(Guid accountId, MoneyMovementRequest request, Guid idempotencyKey, CancellationToken cancellationToken) => SendMoneyMovementAsync(accountId, "withdrawals", request, idempotencyKey, cancellationToken);
 
-    // 201 is a new movement and 200 a recognized retry; both carry the same entry.
-    private async Task<ApiResult<MoneyMovementResult>> MoveMoneyAsync(Guid accountId, string operation, MoneyMovementRequest body, Guid idempotencyKey, CancellationToken cancellationToken)
+    public Task<ApiResult<MoneyMovementResult>> TransferAsync(Guid fromAccountId, TransferMoneyRequest request, Guid idempotencyKey, CancellationToken cancellationToken) => SendMoneyMovementAsync(fromAccountId, "transfers", request, idempotencyKey, cancellationToken);
+
+    // Deposits, withdrawals, and transfers share one contract: an Idempotency-Key header, 201 for
+    // a new movement and 200 for a recognized retry, and problems for refused requests.
+    private async Task<ApiResult<MoneyMovementResult>> SendMoneyMovementAsync<TBody>(Guid accountId, string operation, TBody body, Guid idempotencyKey, CancellationToken cancellationToken)
     {
         using var request = new HttpRequestMessage(HttpMethod.Post, new Uri($"api/accounts/{accountId}/{operation}", UriKind.Relative))
         {
@@ -169,6 +172,7 @@ public sealed class BankingApiClient(HttpClient httpClient) : IBankingApiClient
             _ => throw UnexpectedStatus(response),
         };
     }
+
     #endregion
 
     #region Helpers

@@ -21,6 +21,8 @@ A full-stack banking and transaction management platform built with ASP.NET Core
 - **The browser never sees the API token:** the client keeps it inside an encrypted, HttpOnly session cookie and attaches it to API calls server-side, so scripts in the page can't read it.
 - **Accounts can't be overdrawn, even under concurrency.** Every balance change is one conditional SQL update that holds the account's row lock, so simultaneous withdrawals are applied one at a time against the latest balance. A test fires 20 withdrawals at once against an account that can cover 10: exactly 10 succeed.
 - **History can't be rewritten.** The ledger is append-only: database triggers reject every `UPDATE` and `DELETE`, and every balance is fully explained by its ledger entries, verified by an invariant checker.
+**Transfers are all or nothing, and can't deadlock.** Both accounts change in one transaction, locked in a fixed order, so opposing transfers queue instead of deadlocking. A test fires 40 simultaneous transfers in both directions between two accounts: no deadlock, and not a cent created or lost.
+**Customers can't see each other's accounts.** Requesting another customer's account returns `404`, never confirming it exists, and transfers show other customers only as the last four digits of an account number.
 
 ## Overview
 
@@ -36,6 +38,7 @@ The reasoning behind the architecture, including what each choice costs, is in [
 - **Tests run against real SQL Server**, because constraints, transactions, and locking are what correctness depends on.
 
 The document also lists the known limitations, such as no MFA and no rate limiting, and what production would need instead.
+
 
 ## Getting Started
 
@@ -69,7 +72,7 @@ Startup is ordered by health checks: the API starts once SQL Server accepts quer
 
 ### Demo Accounts
 
-The demo seeds three customers, so you can sign in without registering:
+The demo seeds three customers with about three months of history, including transfers between Alice's accounts and from Alice to Ben.
 
 | Customer | Passwords |Accounts | Use it to see |
 | --- | --- | --- | --- |
@@ -96,6 +99,7 @@ The API ships with an interactive reference, built with [Scalar](https://scalar.
 - **Trigger a lockout.** Sign in with a wrong password five times. The sixth attempt is refused, even with the correct password, for 15 minutes.
 - **Call a protected endpoint anonymously.** Remove the token and call `GET /api/profile`. The API returns `401` without the endpoint declaring any authorization attribute, because authentication is required by default.
 - **Send invalid input.** Register with `not-an-email` or a short password. The response is a `400` problem document listing the error for each field.
+- **Transfer between customers.** Call `POST /api/accounts/{id}/transfers` on one of Alice's accounts with an `Idempotency-Key` header and a body of `{ "toAccountNumber": "7301002457", "amount": 10, "note": "Lunch" }`. The response is Alice's side of the transfer, "Transfer to •••• 2457: Lunch." The same idempotency rules apply as for deposits.
 
 ### Using the Client
 
@@ -105,6 +109,8 @@ Open http://localhost:5002, choose **Log in**, and sign in with any demo account
 
 - **Sign out everywhere.** Sign in as Alice in a normal window and a private window. Log out in one, then refresh the profile in the other: the client finds the session revoked and asks you to log in again.
 - **Register.** Create your own account. Validation errors from the API appear beside the field they belong to.
+- **Transfer money.** From one of Alice's accounts, choose **Transfer**. Move money to her other account, or switch to **To another customer** and send some to Ben at `7301002457`. Both accounts change together, or neither does.
+- **See a transfer from both sides.** Alice's history names her own accounts ("Transfer to Holiday Savings"), but Ben's shows hers only as "Transfer from •••• 4821." Neither customer ever sees the other's account names. Sending to Cara's frozen savings (`7301005512`) gets the same message as a number that doesn't exist, so nothing is revealed about it.
 
 ---
 

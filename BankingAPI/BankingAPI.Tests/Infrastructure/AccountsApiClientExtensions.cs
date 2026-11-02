@@ -52,5 +52,17 @@ internal static class AccountsApiClientExtensions
         return await client.SendAsync(request, cancellationToken);
     }
 
+    public static async Task<HttpResponseMessage> TransferAsync(this HttpClient client, Guid fromAccountId, string toAccountNumber, decimal amount, Guid idempotencyKey, CancellationToken cancellationToken)
+    {
+        using var request = new HttpRequestMessage(
+            HttpMethod.Post, new Uri($"/api/accounts/{fromAccountId}/transfers", UriKind.Relative))
+        {
+            Content = JsonContent.Create(new TransferMoneyRequest(toAccountNumber, amount, Note: null), options: JsonOptions),
+        };
+        request.Headers.Add("Idempotency-Key", idempotencyKey.ToString());
+
+        return await client.SendAsync(request, cancellationToken);
+    }
+
     public static async Task<T> ReadAsync<T>(this HttpResponseMessage response, CancellationToken cancellationToken) => (await response.Content.ReadFromJsonAsync<T>(JsonOptions, cancellationToken))!;
 }

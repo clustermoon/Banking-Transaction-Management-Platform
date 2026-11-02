@@ -162,7 +162,6 @@ This document records the significant decisions behind the platform: what was ch
 
 ## Known limitations
 These are deliberate scope decisions for a portfolio project, with what a production system would need instead.
-
 - **No multi-factor authentication.** Typically you would expect / want added security measures especially for sensitive data; However, the added layers of restriction to beign able to review the core functionality of the program seemed over the top for the scope of this project. That being said, this would be the first feature added should this project be taken to commerical production standards.
 - **No email confirmation or password reset.** Similarly to multi-factor authentication, additional hurdles to quick testing were defered. In a commerical production email verification would be a sub-step to account creation.
 - **No rate limiting.** Lockout protects individual accounts, but nothing throttles requests per client. ASP.NET Core's built-in rate limiter would cover login and registration, and in a commercial production this would be heavily implemented as security measures.

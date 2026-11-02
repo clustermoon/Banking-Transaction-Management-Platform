@@ -34,6 +34,13 @@ public sealed class LedgerEntry
     public string Description { get; private set; } = string.Empty;
 
     public DateTimeOffset OccurredAt { get; private set; }
+
+    /// <summary>Shared by the two entries of one transfer; null for deposits and withdrawals.</summary>
+    public Guid? TransferId { get; private set; }
+
+    /// <summary>The other account in a transfer; null for deposits and withdrawals.</summary>
+    public Guid? CounterpartyAccountId { get; private set; }
+
     #endregion
 
     #region Ledger Methods
@@ -42,8 +49,8 @@ public sealed class LedgerEntry
     /// </summary>
     public decimal SignedAmount => Type switch
     {
-        LedgerEntryType.Deposit => Amount,
-        LedgerEntryType.Withdrawal => -Amount,
+        LedgerEntryType.Deposit or LedgerEntryType.TransferIn => Amount,
+        LedgerEntryType.Withdrawal or LedgerEntryType.TransferOut => -Amount,
         _ => throw new InvalidOperationException($"Unknown ledger entry type {Type}."),
     };
 
@@ -56,6 +63,19 @@ public sealed class LedgerEntry
         Description = description,
         OccurredAt = occurredAt,
     };
+
+    internal static LedgerEntry RecordTransferLeg(Guid accountId, LedgerEntryType type, decimal amount, decimal balanceAfter, string description, DateTimeOffset occurredAt, Guid transferId, Guid counterpartyAccountId) => new()
+    {
+        AccountId = accountId,
+        Type = type,
+        Amount = amount,
+        BalanceAfter = balanceAfter,
+        Description = description,
+        OccurredAt = occurredAt,
+        TransferId = transferId,
+        CounterpartyAccountId = counterpartyAccountId,
+    };
+
     #endregion
 
 }

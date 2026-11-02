@@ -91,4 +91,22 @@ public sealed class BankingApiClientTests
     }
     #endregion
 
+    #region FACT? - Transfer Is Sent As An Action On The Source Account
+    [Fact]
+    public async Task TransferIsSentAsAnActionOnTheSourceAccount()
+    {
+        var handler = new StubHttpMessageHandler(HttpStatusCode.Created, EntryJson);
+        using var httpClient = new HttpClient(handler) { BaseAddress = new Uri("http://api.test/") };
+        var api = new BankingApiClient(httpClient);
+        var sourceId = Guid.NewGuid();
+        var key = Guid.NewGuid();
+
+        await api.TransferAsync(
+            sourceId, new TransferMoneyRequest("7301002457", 10m, null), key, TestContext.Current.CancellationToken);
+
+        Assert.Equal($"/api/accounts/{sourceId}/transfers", handler.LastRequest!.RequestUri!.AbsolutePath);
+        Assert.Equal(key.ToString(), Assert.Single(handler.LastRequest.Headers.GetValues("Idempotency-Key")));
+    }
+    #endregion
+
 }

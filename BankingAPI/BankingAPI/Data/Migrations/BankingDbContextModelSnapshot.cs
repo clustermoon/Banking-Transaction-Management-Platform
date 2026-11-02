@@ -122,6 +122,9 @@ namespace BankingAPI.Data.Migrations
                         .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
+                    b.Property<Guid?>("CounterpartyAccountId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<string>("Description")
                         .IsRequired()
                         .HasMaxLength(100)
@@ -130,12 +133,19 @@ namespace BankingAPI.Data.Migrations
                     b.Property<DateTimeOffset>("OccurredAt")
                         .HasColumnType("datetimeoffset");
 
+                    b.Property<Guid?>("TransferId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<string>("Type")
                         .IsRequired()
                         .HasMaxLength(20)
                         .HasColumnType("nvarchar(20)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("CounterpartyAccountId");
+
+                    b.HasIndex("TransferId");
 
                     b.HasIndex("AccountId", "Id");
 
@@ -146,6 +156,8 @@ namespace BankingAPI.Data.Migrations
                             t.HasCheckConstraint("CK_LedgerEntries_Amount_Positive", "[Amount] > 0");
 
                             t.HasCheckConstraint("CK_LedgerEntries_BalanceAfter_NonNegative", "[BalanceAfter] >= 0");
+
+                            t.HasCheckConstraint("CK_LedgerEntries_TransferShape", "([Type] IN ('TransferOut', 'TransferIn') AND [TransferId] IS NOT NULL AND [CounterpartyAccountId] IS NOT NULL\n    AND [CounterpartyAccountId] <> [AccountId])\nOR ([Type] IN ('Deposit', 'Withdrawal') AND [TransferId] IS NULL AND [CounterpartyAccountId] IS NULL)");
                         });
 
                     b.HasAnnotation("SqlServer:UseSqlOutputClause", false);
@@ -393,6 +405,11 @@ namespace BankingAPI.Data.Migrations
                         .HasForeignKey("AccountId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+
+                    b.HasOne("BankingAPI.Domain.Accounts.Account", null)
+                        .WithMany()
+                        .HasForeignKey("CounterpartyAccountId")
+                        .OnDelete(DeleteBehavior.Restrict);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<System.Guid>", b =>

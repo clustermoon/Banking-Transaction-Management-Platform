@@ -47,6 +47,9 @@
                     <a class="btn btn-outline-primary btn-icon" asp-action="Withdraw" asp-route-id="@account.Id">
                         <i class="bi bi-box-arrow-up" aria-hidden="true"></i> Withdraw
                     </a>
+                    <a class="btn btn-outline-primary btn-icon" asp-action="Transfer" asp-route-id="@account.Id">
+                        <i class="bi bi-arrow-left-right" aria-hidden="true"></i> Transfer
+                    </a>
                 </div>
             }
         </section>
@@ -120,7 +123,7 @@
                                             <tr>
                                                 <td class="text-nowrap">@entry.OccurredAt.UtcDateTime.ToString("MMM d, yyyy")</td>
                                                 <td class="cell-strong">@entry.Description</td>
-                                                <td>@entry.Type</td>
+                                                <td>@entry.Type.ToDisplayName()</td>
                                                 <td class="numeric @(entry.SignedAmount > 0 ? "money-in" : "money-out")">
                                                     @entry.SignedAmount.ToString("+$#,##0.00;-$#,##0.00")
                                                 </td>
@@ -157,6 +160,46 @@
                         </div>
                     </dl>
                 </section>
+
+                <section class="panel panel-body mt-4" aria-labelledby="make-a-change">
+                    <h2 id="make-a-change" class="panel-title">Need to make a change?</h2>
+                    <ul class="action-list">
+                        @if (canMoveMoney)
+                        {
+                            <li>
+                                <a class="action-link" asp-action="Transfer" asp-route-id="@account.Id">
+                                    <span class="icon-tile"><i class="bi bi-arrow-left-right" aria-hidden="true"></i></span>
+                                    <span>
+                                        <span class="action-title">Move money</span>
+                                        <span class="action-text">Transfer to your other accounts or another customer.</span>
+                                    </span>
+                                    <i class="bi bi-arrow-right" aria-hidden="true"></i>
+                                </a>
+                            </li>
+                        }
+                        <li>
+                            <a class="action-link" asp-action="Open">
+                                <span class="icon-tile"><i class="bi bi-plus-lg" aria-hidden="true"></i></span>
+                                <span>
+                                    <span class="action-title">Open another account</span>
+                                    <span class="action-text">Add a checking or savings account.</span>
+                                </span>
+                                <i class="bi bi-arrow-right" aria-hidden="true"></i>
+                            </a>
+                        </li>
+                        <li>
+                            <a class="action-link" asp-controller="Profile" asp-action="Index">
+                                <span class="icon-tile"><i class="bi bi-lock" aria-hidden="true"></i></span>
+                                <span>
+                                    <span class="action-title">Keep your account secure</span>
+                                    <span class="action-text">Review your profile and sign-in security.</span>
+                                </span>
+                                <i class="bi bi-arrow-right" aria-hidden="true"></i>
+                            </a>
+                        </li>
+                    </ul>
+                </section>
+
             </div>
         </div>
     </div>

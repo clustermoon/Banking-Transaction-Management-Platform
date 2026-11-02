@@ -27,6 +27,9 @@ public sealed class Account
     public decimal Balance { get; private set; }
 
     public DateTimeOffset OpenedAt { get; private set; }
+
+    public string MaskedAccountNumber => $"•••• {AccountNumber[^4..]}";
+
     #endregion
 
     #region Account Methods
