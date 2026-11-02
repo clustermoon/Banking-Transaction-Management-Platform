@@ -1,0 +1,61 @@
+@model MoveMoneyViewModel
+@{
+    var isDeposit = Model.Kind == LedgerEntryType.Deposit;
+    var verb = isDeposit ? "Deposit" : "Withdraw";
+    ViewData["Title"] = $"{verb} · {Model.Account.Name}";
+}
+
+<div class="page-surface">
+    <div class="container page-content">
+        <nav aria-label="Breadcrumb">
+            <ol class="breadcrumb-trail">
+                <li><a asp-controller="Dashboard" asp-action="Index">Dashboard</a></li>
+                <li><a asp-action="Details" asp-route-id="@Model.Account.Id">@Model.Account.Name</a></li>
+                <li aria-current="page">@verb</li>
+            </ol>
+        </nav>
+
+        <h1 class="page-title">@(isDeposit ? "Make a deposit" : "Make a withdrawal")</h1>
+        <p class="page-subtitle">
+            @Model.Account.Name · @Model.Account.MaskedNumber · Current balance @Model.Account.Balance.ToString("C")
+        </p>
+
+        <div class="row">
+            <div class="col-lg-6">
+                <div class="panel panel-body">
+                    <form asp-action="@verb" asp-route-id="@Model.Account.Id" method="post" novalidate>
+                        <partial name="_FormAlert" />
+
+                        @* One key per page load: a double-click or resubmission sends this same key,
+                           and the API moves the money at most once. *@
+                        <input asp-for="IdempotencyKey" type="hidden" />
+
+                        <div class="form-field">
+                            <label asp-for="Amount" class="form-label"></label>
+                            <div class="input-group">
+                                <span class="input-group-text">$</span>
+                                <input asp-for="Amount" class="form-control" type="number" step="0.01" min="0.01"
+                                       inputmode="decimal" placeholder="0.00" />
+                            </div>
+                            <span asp-validation-for="Amount" class="field-error"></span>
+                        </div>
+
+                        <div class="form-field">
+                            <label asp-for="Description" class="form-label">Description <span class="label-optional">(optional)</span></label>
+                            <input asp-for="Description" class="form-control" maxlength="100"
+                                   placeholder="@(isDeposit ? "For example, Birthday gift" : "For example, Cash for the weekend")" />
+                            <span asp-validation-for="Description" class="field-error"></span>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary btn-submit">
+                            @verb
+                            <i class="bi bi-arrow-right" aria-hidden="true"></i>
+                        </button>
+                    </form>
+
+                    <p class="form-alt-action"><a asp-action="Details" asp-route-id="@Model.Account.Id">Cancel</a></p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

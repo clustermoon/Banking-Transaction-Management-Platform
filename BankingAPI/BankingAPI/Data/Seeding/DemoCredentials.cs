@@ -8,16 +8,19 @@ namespace BankingAPI.Data.Seeding;
 public static class DemoCredentials
 {
     public const string CustomerPassword = "Avenor-Demo-2026";
+    public const string AliceEmail = "alice@avenor.test";
+    public const string BenEmail = "ben@avenor.test";
+    public const string CaraEmail = "cara@avenor.test";
 
     public static readonly IReadOnlyList<DemoUser> Customers =
     [
         // Everyday customer: accounts, deposits, and transfers.
-        new("alice@avenor.test", "Alice Morgan"),
+        new(AliceEmail, "Alice Morgan"),
 
         // Isolation check: Ben must never be able to see Alice's accounts.
-        new("ben@avenor.test", "Ben Carter"),
+        new(BenEmail, "Ben Carter"),
 
-        // Edge cases: low balance, frozen account, closed account (given to her in Phase 4).
-        new("cara@avenor.test", "Cara Lopez"),
+        // Edge cases: a low balance, a frozen account, and a closed account.
+        new(CaraEmail, "Cara Lopez"),
     ];
 }

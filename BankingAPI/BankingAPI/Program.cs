@@ -1,5 +1,8 @@
+using System.Text.Json.Serialization;
+
 using BankingAPI.Data;
 using BankingAPI.Data.Seeding;
+using BankingAPI.Domain.Ledger;
 using BankingAPI.Identity;
 using BankingAPI.Infrastructure.Errors;
 using BankingAPI.Infrastructure.OpenApi;
@@ -67,12 +70,13 @@ public sealed class Program
         builder.Services.AddSingleton(TimeProvider.System);
         builder.Services.AddBankingIdentity();
         builder.Services.AddBankingAuthentication();
+        builder.Services.AddScoped<LedgerService>();
 
         // --- HTTP and Application Services ---
         //
         // Register controller-based HTTP endpoints and attach the shared 'FluentVaidation' filter to the controller
         // execution pipeline. Validators are discovered from the API assembly including internal types without needing registration. 
-        builder.Services.AddControllers(options => options.Filters.Add<FluentValidationFilter>());
+        builder.Services.AddControllers(options => options.Filters.Add<FluentValidationFilter>()).AddJsonOptions(options => options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
         builder.Services.AddValidatorsFromAssemblyContaining<Program>(includeInternalTypes: true);
 
         // Centralize exception handling and error-response infrastructure rather than requiring individual controllers to handle

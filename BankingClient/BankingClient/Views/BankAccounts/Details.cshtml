@@ -1,0 +1,163 @@
+@model AccountDetailsViewModel
+@{
+    var account = Model.Account;
+    ViewData["Title"] = account.Name;
+    var canMoveMoney = account.Status == AccountStatus.Active;
+}
+
+<div class="page-surface">
+    <div class="container page-content">
+        <nav aria-label="Breadcrumb">
+            <ol class="breadcrumb-trail">
+                <li><a asp-controller="Dashboard" asp-action="Index">Dashboard</a></li>
+                <li aria-current="page">@account.Name</li>
+            </ol>
+        </nav>
+
+        <h1 class="page-title">@account.Name</h1>
+        <p class="page-subtitle">View your account details, manage your money, and review your transaction history.</p>
+
+        <partial name="_Notice" />
+
+        <section class="panel account-summary mb-4" aria-label="Account summary">
+            <span class="icon-tile"><i class="bi bi-credit-card-2-front" aria-hidden="true"></i></span>
+            <div>
+                <p class="summary-name">@account.Name</p>
+                <p class="summary-label mb-0">@account.Type account</p>
+            </div>
+            <div>
+                <p class="summary-label">Account number</p>
+                <p class="summary-value mb-0">@account.MaskedNumber</p>
+            </div>
+            <div>
+                <p class="summary-label">Status</p>
+                <partial name="_AccountStatus" model="account.Status" />
+            </div>
+            <div>
+                <p class="summary-label">Current balance</p>
+                <p class="balance-value mb-0">@account.Balance.ToString("C")</p>
+            </div>
+
+            @if (canMoveMoney)
+            {
+                <div class="account-actions">
+                    <a class="btn btn-primary btn-icon" asp-action="Deposit" asp-route-id="@account.Id">
+                        <i class="bi bi-box-arrow-in-down" aria-hidden="true"></i> Deposit
+                    </a>
+                    <a class="btn btn-outline-primary btn-icon" asp-action="Withdraw" asp-route-id="@account.Id">
+                        <i class="bi bi-box-arrow-up" aria-hidden="true"></i> Withdraw
+                    </a>
+                </div>
+            }
+        </section>
+
+        @if (!canMoveMoney)
+        {
+            <div class="form-notice mb-4" role="status">
+                <i class="bi bi-info-circle" aria-hidden="true"></i>
+                <span>
+                    @(account.Status == AccountStatus.Frozen
+                        ? "This account is frozen, so money can't move in or out of it."
+                        : "This account is closed. Its history remains available below.")
+                </span>
+            </div>
+        }
+
+        <div class="row g-4">
+            <div class="col-lg-8">
+                <section class="panel panel-body" aria-labelledby="transaction-history">
+                    <div class="panel-header">
+                        <h2 id="transaction-history" class="panel-title mb-0">Transaction history</h2>
+                        <form method="get" asp-action="Details" asp-route-id="@account.Id" class="date-filter">
+                            <div>
+                                <label class="form-label" for="from">From</label>
+                                <input class="form-control" type="date" id="from" name="from"
+                                       value="@Model.From.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)" />
+                            </div>
+                            <div>
+                                <label class="form-label" for="to">To</label>
+                                <input class="form-control" type="date" id="to" name="to"
+                                       value="@Model.To.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)" />
+                            </div>
+                            <button type="submit" class="btn btn-primary">Apply</button>
+                        </form>
+                    </div>
+
+                    @if (Model.HistoryProblem is { } problem)
+                    {
+                        <div class="form-alert" role="alert">
+                            <i class="bi bi-exclamation-circle" aria-hidden="true"></i>
+                            <span>@(problem.Errors.Values.SelectMany(messages => messages).FirstOrDefault() ?? problem.Detail ?? problem.Title)</span>
+                        </div>
+                    }
+                    else if (Model.History is { } history)
+                    {
+                        <p class="statement-summary">
+                            <span>Opening balance on @history.From.ToString("MMM d, yyyy"): <strong>@history.OpeningBalance.ToString("C")</strong></span>
+                            <span>Closing balance on @history.To.ToString("MMM d, yyyy"): <strong>@history.ClosingBalance.ToString("C")</strong></span>
+                        </p>
+
+                        @if (history.Entries.Count == 0)
+                        {
+                            <p class="empty-state">No transactions in this period.</p>
+                        }
+                        else
+                        {
+                            <div class="table-scroll">
+                                <table class="data-table">
+                                    <thead>
+                                        <tr>
+                                            <th scope="col">Date</th>
+                                            <th scope="col">Description</th>
+                                            <th scope="col">Type</th>
+                                            <th scope="col" class="numeric">Amount</th>
+                                            <th scope="col" class="numeric">Balance</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var entry in history.Entries)
+                                        {
+                                            <tr>
+                                                <td class="text-nowrap">@entry.OccurredAt.UtcDateTime.ToString("MMM d, yyyy")</td>
+                                                <td class="cell-strong">@entry.Description</td>
+                                                <td>@entry.Type</td>
+                                                <td class="numeric @(entry.SignedAmount > 0 ? "money-in" : "money-out")">
+                                                    @entry.SignedAmount.ToString("+$#,##0.00;-$#,##0.00")
+                                                </td>
+                                                <td class="numeric">@entry.BalanceAfter.ToString("C")</td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        }
+                    }
+                </section>
+            </div>
+
+            <div class="col-lg-4">
+                <section class="panel panel-body" aria-labelledby="account-information">
+                    <h2 id="account-information" class="panel-title">Account information</h2>
+                    <dl class="detail-list detail-list-compact">
+                        <div class="detail-row">
+                            <dt>Account type</dt>
+                            <dd>@account.Type</dd>
+                        </div>
+                        <div class="detail-row">
+                            <dt>Account number</dt>
+                            <dd>@account.AccountNumber</dd>
+                        </div>
+                        <div class="detail-row">
+                            <dt>Status</dt>
+                            <dd><partial name="_AccountStatus" model="account.Status" /></dd>
+                        </div>
+                        <div class="detail-row">
+                            <dt>Opened</dt>
+                            <dd>@account.OpenedAt.UtcDateTime.ToString("MMM d, yyyy")</dd>
+                        </div>
+                    </dl>
+                </section>
+            </div>
+        </div>
+    </div>
+</div>

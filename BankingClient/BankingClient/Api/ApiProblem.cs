@@ -1,6 +1,7 @@
 namespace BankingClient.Api;
 
 /// <summary>
-/// An expected API failure: a problem title, plus per-field errors when the API rejected input.
+/// An expected API failure. Detail carries a business rule's message ("Insufficient funds…");
+/// Errors carries per-field validation messages.
 /// </summary>
-public sealed record ApiProblem(string Title, IReadOnlyDictionary<string, string[]> Errors);
+public sealed record ApiProblem(string Title, string? Detail, IReadOnlyDictionary<string, string[]> Errors);

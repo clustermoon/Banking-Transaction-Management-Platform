@@ -24,6 +24,8 @@
     --avenor-radius: 0.75rem;
     --avenor-shadow: 0 1rem 2.5rem rgba(13, 37, 71, 0.08);
     --avenor-serif: Georgia, "Times New Roman", serif;
+    --avenor-success: #13795b;
+    --avenor-warning: #b45309;
 }
 
 /* 2. Bootstrap overrides --------------------------------------------------- */
@@ -76,11 +78,11 @@ h2 {
     color: var(--avenor-white);
 }
 
-    .site-header a:not(.btn),
-    .site-footer a {
-        color: var(--avenor-white);
-        text-decoration: none;
-    }
+.site-header a:not(.btn),
+.site-footer a {
+    color: var(--avenor-white);
+    text-decoration: none;
+}
 
 .brand {
     font-family: var(--avenor-serif);
@@ -92,10 +94,10 @@ h2 {
     border-bottom: 2px solid transparent;
 }
 
-    .site-nav-link:hover,
-    .site-nav-link.active {
-        border-bottom-color: var(--avenor-white);
-    }
+.site-nav-link:hover,
+.site-nav-link.active {
+    border-bottom-color: var(--avenor-white);
+}
 
 /* main fills the space between header and footer; a page surface inside it
    stretches to fill main, so no white band shows on short pages. */
@@ -117,14 +119,14 @@ main {
     gap: 0.75rem;
 }
 
-    .site-footer-inner .brand {
-        font-size: 1.4rem;
-    }
+.site-footer-inner .brand {
+    font-size: 1.4rem;
+}
 
-    .site-footer-inner > * + * {
-        padding-left: 0.75rem;
-        border-left: 1px solid rgba(255, 255, 255, 0.4);
-    }
+.site-footer-inner > * + * {
+    padding-left: 0.75rem;
+    border-left: 1px solid rgba(255, 255, 255, 0.4);
+}
 
 /* 5. Shared components ----------------------------------------------------- */
 
@@ -163,15 +165,15 @@ main {
     color: var(--avenor-muted);
 }
 
-    .breadcrumb-trail li + li::before {
-        content: "›";
-        margin-right: 0.75rem;
-    }
+.breadcrumb-trail li + li::before {
+    content: "›";
+    margin-right: 0.75rem;
+}
 
-    .breadcrumb-trail a {
-        color: var(--avenor-blue);
-        text-decoration: none;
-    }
+.breadcrumb-trail a {
+    color: var(--avenor-blue);
+    text-decoration: none;
+}
 
 /* Panels (cards) */
 .panel {
@@ -231,9 +233,9 @@ main {
     border-color: var(--avenor-border);
 }
 
-    .form-control.input-validation-error {
-        border-color: var(--avenor-danger);
-    }
+.form-control.input-validation-error {
+    border-color: var(--avenor-danger);
+}
 
 .field-help {
     margin: 0.4rem 0 0;
@@ -293,11 +295,11 @@ main {
     color: var(--avenor-muted);
 }
 
-    .form-alt-action a {
-        font-weight: 600;
-        color: var(--avenor-blue);
-        text-decoration: none;
-    }
+.form-alt-action a {
+    font-weight: 600;
+    color: var(--avenor-blue);
+    text-decoration: none;
+}
 
 /* Info box and inline notes */
 .info-box {
@@ -340,10 +342,10 @@ main {
     list-style: none;
 }
 
-    .demo-accounts code,
-    .demo-password {
-        color: var(--avenor-text);
-    }
+.demo-accounts code,
+.demo-password {
+    color: var(--avenor-text);
+}
 
 .demo-password {
     font-weight: 700;
@@ -363,17 +365,17 @@ main {
     border-bottom: 1px solid var(--avenor-border);
 }
 
-    .detail-row dt {
-        font-weight: 400;
-        font-size: 0.9rem;
-        color: var(--avenor-muted);
-    }
+.detail-row dt {
+    font-weight: 400;
+    font-size: 0.9rem;
+    color: var(--avenor-muted);
+}
 
-    .detail-row dd {
-        margin: 0;
-        font-weight: 600;
-        color: var(--avenor-navy);
-    }
+.detail-row dd {
+    margin: 0;
+    font-weight: 600;
+    color: var(--avenor-navy);
+}
 
 .badge-soft {
     display: inline-block;
@@ -385,6 +387,310 @@ main {
     font-weight: 600;
 }
 
+/* Eyebrow: small uppercase lead-in above a page title */
+.eyebrow {
+    margin-bottom: 1.5rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--avenor-blue);
+}
+
+/* Panel header: a title with an action or filter beside it */
+.panel-header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.link-arrow {
+    font-weight: 600;
+    color: var(--avenor-blue);
+    text-decoration: none;
+}
+
+.btn-icon {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.empty-state {
+    padding: 2rem 1rem;
+    margin: 0;
+    text-align: center;
+    color: var(--avenor-muted);
+}
+
+/* Summary cards */
+.stat-card {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+    padding: 1.5rem;
+}
+
+.stat-card .icon-tile {
+    margin-bottom: 0;
+}
+
+.stat-label {
+    margin: 0 0 0.25rem;
+    font-size: 0.9rem;
+    color: var(--avenor-muted);
+}
+
+.stat-value {
+    margin: 0;
+    font-family: var(--avenor-serif);
+    font-size: 2rem;
+    color: var(--avenor-navy);
+    font-variant-numeric: tabular-nums;
+}
+
+/* Data tables */
+.table-scroll {
+    overflow-x: auto;
+}
+
+.data-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+}
+
+.data-table th {
+    padding: 0.85rem 1rem;
+    background: var(--avenor-page-start);
+    font-weight: 500;
+    color: var(--avenor-muted);
+    text-align: left;
+}
+
+.data-table td {
+    padding: 1rem;
+    border-bottom: 1px solid var(--avenor-border);
+    color: var(--avenor-text);
+    vertical-align: middle;
+}
+
+.data-table .numeric {
+    text-align: right;
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+}
+
+.cell-strong {
+    font-weight: 600;
+    color: var(--avenor-navy);
+}
+
+/* Money direction: a sign and a color, never color alone */
+.money-in {
+    font-weight: 600;
+    color: var(--avenor-success);
+}
+
+.money-out {
+    font-weight: 600;
+    color: var(--avenor-navy);
+}
+
+/* Account status: a dot plus the word */
+.status {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    color: var(--avenor-text);
+}
+
+.status::before {
+    content: "";
+    width: 0.55rem;
+    height: 0.55rem;
+    border-radius: 50%;
+    background: var(--status-color);
+}
+
+.status-active {
+    --status-color: var(--avenor-success);
+}
+
+.status-frozen {
+    --status-color: var(--avenor-warning);
+}
+
+.status-closed {
+    --status-color: var(--avenor-muted);
+}
+
+/* Account summary card */
+.account-summary {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 1.5rem 2.5rem;
+    padding: 1.75rem 2rem;
+}
+
+.account-summary .icon-tile {
+    margin-bottom: 0;
+}
+
+.summary-name {
+    margin: 0;
+    font-family: var(--avenor-serif);
+    font-size: 1.25rem;
+    color: var(--avenor-navy);
+}
+
+.summary-label {
+    margin-bottom: 0.25rem;
+    font-size: 0.8rem;
+    color: var(--avenor-muted);
+}
+
+.summary-value {
+    font-weight: 600;
+    color: var(--avenor-navy);
+}
+
+.balance-value {
+    font-family: var(--avenor-serif);
+    font-size: 2rem;
+    color: var(--avenor-navy);
+    font-variant-numeric: tabular-nums;
+}
+
+.account-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-left: auto;
+}
+
+/* History filter and statement balances */
+.date-filter {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: 0.75rem;
+}
+
+.date-filter .form-control {
+    min-height: 2.5rem;
+}
+
+.statement-summary {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 0.5rem 1.5rem;
+    font-size: 0.875rem;
+    color: var(--avenor-muted);
+}
+
+.statement-summary strong {
+    color: var(--avenor-navy);
+    font-variant-numeric: tabular-nums;
+}
+
+.detail-list-compact .detail-row {
+    grid-template-columns: 8.5rem 1fr;
+    padding: 0.75rem 0;
+}
+
+/* Action list (dashboard "What you can do") */
+.action-list {
+    padding: 0;
+    margin: 0;
+    list-style: none;
+}
+
+.action-list li + li {
+    border-top: 1px solid var(--avenor-border);
+}
+
+.action-link {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem 0;
+    color: inherit;
+    text-decoration: none;
+}
+
+.action-link .icon-tile {
+    margin-bottom: 0;
+    flex-shrink: 0;
+}
+
+.action-link > .bi-arrow-right {
+    margin-left: auto;
+    color: var(--avenor-blue);
+}
+
+.action-title {
+    display: block;
+    font-weight: 600;
+    color: var(--avenor-navy);
+}
+
+.action-text {
+    display: block;
+    font-size: 0.85rem;
+    color: var(--avenor-muted);
+}
+
+/* Choice cards (radio options) */
+.choice-group {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+    gap: 1rem;
+}
+
+.choice-card {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    padding: 1rem 1.25rem;
+    border: 1px solid var(--avenor-border);
+    border-radius: 0.5rem;
+    cursor: pointer;
+}
+
+.choice-card:has(input:checked) {
+    border-color: var(--avenor-blue);
+    background: var(--avenor-page-start);
+    box-shadow: 0 0 0 1px var(--avenor-blue);
+}
+
+.choice-title {
+    display: block;
+    font-weight: 600;
+    color: var(--avenor-navy);
+}
+
+.choice-text {
+    display: block;
+    font-size: 0.85rem;
+    color: var(--avenor-muted);
+}
+
+.label-optional {
+    font-weight: 400;
+    color: var(--avenor-muted);
+}
+
+.input-group-text {
+    border-color: var(--avenor-border);
+    background: var(--avenor-page-start);
+}
+
 /* 6. Pages ----------------------------------------------------------------- */
 
 /* Landing page */
@@ -393,11 +699,11 @@ main {
     background: linear-gradient(90deg, rgba(255, 255, 255, 0.9) 35%, rgba(255, 255, 255, 0) 70%), url("../images/company-building.webp") right center / cover no-repeat;
 }
 
-    .hero h1 {
-        font-size: clamp(2.5rem, 5vw, 4.5rem);
-        line-height: 1.1;
-        text-shadow: 0 1px 3px rgba(255, 255, 255, 0.9);
-    }
+.hero h1 {
+    font-size: clamp(2.5rem, 5vw, 4.5rem);
+    line-height: 1.1;
+    text-shadow: 0 1px 3px rgba(255, 255, 255, 0.9);
+}
 
 .features {
     padding: 3rem 0;
@@ -425,15 +731,6 @@ main {
 .auth-shell {
     padding-top: 4rem;
     padding-bottom: 4rem;
-}
-
-.auth-eyebrow {
-    margin-bottom: 1.5rem;
-    font-size: 0.8rem;
-    font-weight: 600;
-    letter-spacing: 0.18em;
-    text-transform: uppercase;
-    color: var(--avenor-blue);
 }
 
 .auth-headline {
@@ -465,9 +762,9 @@ main {
     color: var(--avenor-muted);
 }
 
-    .auth-trust .bi {
-        color: var(--avenor-blue);
-    }
+.auth-trust .bi {
+    color: var(--avenor-blue);
+}
 
 .auth-illustration {
     display: block;

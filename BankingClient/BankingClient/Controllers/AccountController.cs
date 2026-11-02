@@ -39,7 +39,7 @@ public sealed class AccountController(IBankingApiClient api) : Controller
         // user on the login page rather than converting those failures into an exception.
         if (login.Value is not { } session)
         {
-            ModelState.AddModelError(string.Empty, login.Problem!.Title);
+            ModelState.AddApiProblem(login.Problem!);
             return View(model);
         }
 
@@ -65,7 +65,7 @@ public sealed class AccountController(IBankingApiClient api) : Controller
         var problem = await api.RegisterAsync(new RegisterRequest(model.Email, model.Password, model.DisplayName), cancellationToken);
         if (problem is not null)
         {
-            AddProblemErrors(problem);
+            ModelState.AddApiProblem(problem);
             return View(model);
         }
 
@@ -133,6 +133,6 @@ public sealed class AccountController(IBankingApiClient api) : Controller
     private IActionResult RedirectToLocal(string? returnUrl) => Url.IsLocalUrl(returnUrl) ? Redirect(returnUrl) : RedirectToSignedInHome();
 
     // Where a user lands after signing in. Phase 4 changes this to the dashboard.
-    private RedirectToActionResult RedirectToSignedInHome() => RedirectToAction(nameof(ProfileController.Index), "Profile");
+    private RedirectToActionResult RedirectToSignedInHome() => RedirectToAction(nameof(DashboardController.Index), "Dashboard");
     #endregion
 }

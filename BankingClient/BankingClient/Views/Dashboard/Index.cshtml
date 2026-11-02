@@ -1,0 +1,125 @@
+@model DashboardViewModel
+@{
+    ViewData["Title"] = "Dashboard";
+    var firstName = User.Identity?.Name?.Split(' ')[0];
+}
+
+<div class="page-surface">
+    <div class="container page-content">
+        <p class="eyebrow">Welcome back, @firstName.</p>
+        <h1 class="page-title">Your accounts at a glance.</h1>
+        <p class="page-subtitle">A simple overview of your accounts and balances.</p>
+        <a class="btn btn-primary mb-5" asp-controller="BankAccounts" asp-action="Open">Open account</a>
+
+        <div class="row g-4 mb-4">
+            <div class="col-md-4">
+                <div class="panel stat-card">
+                    <span class="icon-tile"><i class="bi bi-wallet2" aria-hidden="true"></i></span>
+                    <div>
+                        <p class="stat-label">Total balance</p>
+                        <p class="stat-value">@Model.TotalBalance.ToString("C")</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="panel stat-card">
+                    <span class="icon-tile"><i class="bi bi-bank" aria-hidden="true"></i></span>
+                    <div>
+                        <p class="stat-label">Open accounts</p>
+                        <p class="stat-value">@Model.OpenAccounts</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="panel stat-card">
+                    <span class="icon-tile"><i class="bi bi-check-circle" aria-hidden="true"></i></span>
+                    <div>
+                        <p class="stat-label">Active accounts</p>
+                        <p class="stat-value">@Model.ActiveAccounts</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-4">
+            <div class="col-lg-8">
+                <section class="panel panel-body" aria-labelledby="your-accounts">
+                    <div class="panel-header">
+                        <h2 id="your-accounts" class="panel-title mb-0">Your accounts</h2>
+                        <a class="link-arrow" asp-controller="BankAccounts" asp-action="Open">
+                            Open account <i class="bi bi-arrow-right" aria-hidden="true"></i>
+                        </a>
+                    </div>
+
+                    @if (Model.Accounts.Count == 0)
+                    {
+                        <p class="empty-state">You don't have any accounts yet. Open one to get started.</p>
+                    }
+                    else
+                    {
+                        <div class="table-scroll">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th scope="col">Account name</th>
+                                        <th scope="col">Type</th>
+                                        <th scope="col">Account number</th>
+                                        <th scope="col">Status</th>
+                                        <th scope="col" class="numeric">Balance</th>
+                                        <th scope="col"><span class="visually-hidden">Actions</span></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var account in Model.Accounts)
+                                    {
+                                        <tr>
+                                            <td class="cell-strong">@account.Name</td>
+                                            <td>@account.Type</td>
+                                            <td>@account.MaskedNumber</td>
+                                            <td><partial name="_AccountStatus" model="account.Status" /></td>
+                                            <td class="numeric cell-strong">@account.Balance.ToString("C")</td>
+                                            <td class="text-end">
+                                                <a class="btn btn-outline-primary btn-sm" asp-controller="BankAccounts"
+                                                   asp-action="Details" asp-route-id="@account.Id">
+                                                    View details<span class="visually-hidden"> for @account.Name</span>
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                </section>
+            </div>
+
+            <div class="col-lg-4">
+                <section class="panel panel-body" aria-labelledby="what-you-can-do">
+                    <h2 id="what-you-can-do" class="panel-title">What you can do</h2>
+                    <ul class="action-list">
+                        <li>
+                            <a class="action-link" asp-controller="BankAccounts" asp-action="Open">
+                                <span class="icon-tile"><i class="bi bi-plus-lg" aria-hidden="true"></i></span>
+                                <span>
+                                    <span class="action-title">Open a new account</span>
+                                    <span class="action-text">Add a checking or savings account in moments.</span>
+                                </span>
+                                <i class="bi bi-arrow-right" aria-hidden="true"></i>
+                            </a>
+                        </li>
+                        <li>
+                            <a class="action-link" asp-controller="Profile" asp-action="Index">
+                                <span class="icon-tile"><i class="bi bi-shield-check" aria-hidden="true"></i></span>
+                                <span>
+                                    <span class="action-title">Keep your information secure</span>
+                                    <span class="action-text">Review your profile and sign-in security.</span>
+                                </span>
+                                <i class="bi bi-arrow-right" aria-hidden="true"></i>
+                            </a>
+                        </li>
+                    </ul>
+                </section>
+            </div>
+        </div>
+    </div>
+</div>
