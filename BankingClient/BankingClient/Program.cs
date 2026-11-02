@@ -65,6 +65,13 @@ public sealed class Program
             app.UseExceptionHandler("/Home/Error");
         }
 
+        // Error statuses without their own page (notably 404) render the status page.
+        app.UseStatusCodePagesWithReExecute("/error/{0}");
+
+        // Money and dates always format as US English. Containers default to the invariant
+        // culture, which would render currency as "¤5,230.14" instead of "$5,230.14".
+        app.UseRequestLocalization("en-US");
+
         // Authentication must run before authorization so [Authorize] actions can evaluate
         // the session cookie before the request reaches a controller.
         app.UseRouting();

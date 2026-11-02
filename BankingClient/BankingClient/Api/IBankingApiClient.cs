@@ -16,4 +16,17 @@ public interface IBankingApiClient
     Task<ProfileResponse> GetProfileAsync(string? accessToken, CancellationToken cancellationToken);
 
     Task LogoutAsync(CancellationToken cancellationToken);
+
+    Task<IReadOnlyList<AccountResponse>> GetAccountsAsync(CancellationToken cancellationToken);
+
+    /// <returns>Null when the account doesn't exist or belongs to someone else.</returns>
+    Task<AccountResponse?> GetAccountAsync(Guid accountId, CancellationToken cancellationToken);
+
+    Task<ApiResult<AccountHistoryResponse>> GetHistoryAsync(Guid accountId, DateOnly? from, DateOnly? onto, CancellationToken cancellationToken);
+
+    Task<ApiResult<AccountResponse>> OpenAccountAsync(OpenAccountRequest request, CancellationToken cancellationToken);
+
+    Task<ApiResult<MoneyMovementResult>> DepositAsync(Guid accountId, MoneyMovementRequest request, Guid idempotencyKey, CancellationToken cancellationToken);
+
+    Task<ApiResult<MoneyMovementResult>> WithdrawAsync(Guid accountId, MoneyMovementRequest request, Guid idempotencyKey, CancellationToken cancellationToken);
 }

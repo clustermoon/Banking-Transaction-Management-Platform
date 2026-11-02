@@ -1,15 +1,24 @@
 @{
     var controller = ViewContext.RouteData.Values["controller"] as string;
-    bool IsCurrent(string name) => string.Equals(controller, name, StringComparison.OrdinalIgnoreCase);
+    var action = ViewContext.RouteData.Values["action"] as string;
+    bool IsController(string name) => string.Equals(controller, name, StringComparison.OrdinalIgnoreCase);
+
+    // Account pages sit under the dashboard; opening an account has its own nav item.
+    var onOpenAccount = IsController("BankAccounts") && string.Equals(action, "Open", StringComparison.OrdinalIgnoreCase);
+    var onDashboard = IsController("Dashboard") || (IsController("BankAccounts") && !onOpenAccount);
+    var onProfile = IsController("Profile");
 }
 
 @if (User.Identity?.IsAuthenticated == true)
 {
-    @* Each phase adds its page's link here when the page ships: Dashboard, Accounts, Move money, Statements. *@
-    <a class="site-nav-link @(IsCurrent("Profile") ? "active" : null)"
-       aria-current="@(IsCurrent("Profile") ? "page" : null)"
-       asp-controller="Profile" asp-action="Index">Profile</a>
-
+    <a class="site-nav-link @(onDashboard ? "active" : null)" aria-current="@(IsController("Dashboard") ? "page" : null)"
+       asp-controller="Dashboard" asp-action="Index">Dashboard</a>
+    <a class="site-nav-link @(onOpenAccount ? "active" : null)" aria-current="@(onOpenAccount ? "page" : null)"
+       asp-controller="BankAccounts" asp-action="Open">Open account</a>
+    <a class="site-nav-link @(onProfile ? "active" : null)" aria-current="@(onProfile ? "page" : null)"
+       asp-controller="Profile" asp-action="Index">
+        <i class="bi bi-person-circle" aria-hidden="true"></i> @User.Identity.Name
+    </a>
     <form asp-controller="Account" asp-action="Logout" method="post" class="d-inline">
         <button type="submit" class="btn btn-outline-light">Log out</button>
     </form>
