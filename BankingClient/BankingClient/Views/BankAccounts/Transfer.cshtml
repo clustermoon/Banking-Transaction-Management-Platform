@@ -1,0 +1,172 @@
+@model TransferViewModel
+@{
+    var account = Model.Account;
+    var toCustomer = Model.Mode == TransferMode.AnotherCustomer;
+    ViewData["Title"] = $"Transfer · {account.Name}";
+}
+
+<div class="page-surface">
+    <div class="container page-content">
+        <nav aria-label="Breadcrumb">
+            <ol class="breadcrumb-trail">
+                <li><a asp-controller="Dashboard" asp-action="Index">Dashboard</a></li>
+                <li><a asp-action="Details" asp-route-id="@account.Id">@account.Name</a></li>
+                <li aria-current="page">Transfer</li>
+            </ol>
+        </nav>
+
+        <h1 class="page-title">Transfer money</h1>
+        <p class="page-subtitle">Move money between your accounts or to another Avenor customer by account number.</p>
+
+        <section class="panel account-summary mb-4" aria-label="From account">
+            <span class="icon-tile"><i class="bi bi-wallet2" aria-hidden="true"></i></span>
+            <div>
+                <p class="summary-label">From account</p>
+                <p class="summary-name">@account.Name</p>
+                <p class="summary-label mb-0">@account.Type account</p>
+            </div>
+            <div>
+                <p class="summary-label">Account number</p>
+                <p class="summary-value mb-0">@account.MaskedNumber</p>
+            </div>
+            <div>
+                <p class="summary-label">Status</p>
+                <partial name="_AccountStatus" model="account.Status" />
+            </div>
+            <div>
+                <p class="summary-label">Current balance</p>
+                <p class="balance-value mb-0">@account.Balance.ToString("C")</p>
+            </div>
+            <div class="account-actions">
+                <a class="btn btn-outline-primary btn-icon" asp-action="Details" asp-route-id="@account.Id">
+                    <i class="bi bi-arrow-left" aria-hidden="true"></i> Back to account
+                </a>
+            </div>
+        </section>
+
+        <div class="row g-4">
+            <div class="col-lg-8">
+                <section class="panel panel-body" aria-labelledby="make-a-transfer">
+                    <h2 id="make-a-transfer" class="panel-title">Make a transfer</h2>
+
+                    <p id="transfer-type" class="form-label mb-2">Transfer type</p>
+                    <div class="segmented" role="group" aria-labelledby="transfer-type">
+                        <a asp-action="Transfer" asp-route-id="@account.Id" asp-route-mode="@TransferMode.OwnAccounts"
+                           aria-current="@(toCustomer ? null : "true")">Between my accounts</a>
+                        <a asp-action="Transfer" asp-route-id="@account.Id" asp-route-mode="@TransferMode.AnotherCustomer"
+                           aria-current="@(toCustomer ? "true" : null)">To another customer</a>
+                    </div>
+                    <p class="field-help mb-4">
+                        @(toCustomer
+                            ? "Send money to any active Avenor account using its 10-digit account number."
+                            : "Move money between your own checking and savings accounts.")
+                    </p>
+
+                    @if (!toCustomer && Model.DestinationOptions.Count == 0)
+                    {
+                        <div class="form-notice" role="status">
+                            <i class="bi bi-info-circle" aria-hidden="true"></i>
+                            <span>
+                                You don't have another active account to transfer to.
+                                <a asp-action="Open">Open one</a>, or send money to another customer.
+                            </span>
+                        </div>
+                    }
+                    else
+                    {
+                        <form asp-action="Transfer" asp-route-id="@account.Id" method="post" novalidate>
+                            <partial name="_FormAlert" />
+                            <input asp-for="Mode" type="hidden" />
+
+                            @* One key per page load: a double-click or resubmission sends this same key,
+                               and the API moves the money at most once. *@
+                            <input asp-for="IdempotencyKey" type="hidden" />
+
+                            <div class="row">
+                                <div class="col-md-6 form-field">
+                                    @if (toCustomer)
+                                    {
+                                        <label asp-for="ToAccountNumber" class="form-label">Account number</label>
+                                        <input asp-for="ToAccountNumber" class="form-control" inputmode="numeric"
+                                               autocomplete="off" maxlength="14" placeholder="10-digit account number" />
+                                    }
+                                    else
+                                    {
+                                        <label asp-for="ToAccountNumber" class="form-label">To account</label>
+                                        <select asp-for="ToAccountNumber" class="form-select">
+                                            <option value="">Choose an account</option>
+                                            @foreach (var option in Model.DestinationOptions)
+                                            {
+                                                <option value="@option.AccountNumber">@option.Name @option.MaskedNumber</option>
+                                            }
+                                        </select>
+                                    }
+                                    <span asp-validation-for="ToAccountNumber" class="field-error"></span>
+                                </div>
+
+                                <div class="col-md-6 form-field">
+                                    <label asp-for="Amount" class="form-label"></label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">$</span>
+                                        <input asp-for="Amount" class="form-control" type="number" step="0.01" min="0.01"
+                                               inputmode="decimal" placeholder="0.00" />
+                                    </div>
+                                    <span asp-validation-for="Amount" class="field-error"></span>
+                                </div>
+
+                                <div class="col-12 form-field">
+                                    <label asp-for="Note" class="form-label">Note <span class="label-optional">(optional)</span></label>
+                                    <input asp-for="Note" class="form-control" maxlength="30" placeholder="For example, Monthly savings" />
+                                    <span asp-validation-for="Note" class="field-error"></span>
+                                </div>
+                            </div>
+
+                            <p class="info-line">
+                                <i class="bi bi-info-circle" aria-hidden="true"></i>
+                                <span>Transfers happen immediately and appear in both accounts' histories.</span>
+                            </p>
+
+                            <hr class="panel-divider" />
+
+                            <div class="d-flex flex-wrap gap-2">
+                                <button type="submit" class="btn btn-primary btn-icon">
+                                    Transfer <i class="bi bi-arrow-right" aria-hidden="true"></i>
+                                </button>
+                                <a class="btn btn-outline-primary" asp-action="Details" asp-route-id="@account.Id">Cancel</a>
+                            </div>
+                        </form>
+                    }
+                </section>
+            </div>
+
+            <div class="col-lg-4">
+                <section class="panel panel-body" aria-labelledby="what-to-know">
+                    <h2 id="what-to-know" class="panel-title">What to know</h2>
+                    <ul class="action-list">
+                        <li class="action-item">
+                            <span class="icon-tile"><i class="bi bi-bank" aria-hidden="true"></i></span>
+                            <span>
+                                <span class="action-title">Between your accounts</span>
+                                <span class="action-text">Move money between your checking and savings accounts.</span>
+                            </span>
+                        </li>
+                        <li class="action-item">
+                            <span class="icon-tile"><i class="bi bi-person" aria-hidden="true"></i></span>
+                            <span>
+                                <span class="action-title">To another customer</span>
+                                <span class="action-text">Their accounts appear only as the last four digits; names are never shown.</span>
+                            </span>
+                        </li>
+                        <li class="action-item">
+                            <span class="icon-tile"><i class="bi bi-shield-check" aria-hidden="true"></i></span>
+                            <span>
+                                <span class="action-title">All or nothing</span>
+                                <span class="action-text">Both accounts update together, or neither does.</span>
+                            </span>
+                        </li>
+                    </ul>
+                </section>
+            </div>
+        </div>
+    </div>
+</div>

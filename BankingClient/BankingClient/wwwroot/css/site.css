@@ -47,6 +47,13 @@
     --bs-btn-active-border-color: var(--avenor-blue-dark);
 }
 
+.btn:focus-visible,
+.form-control:focus,
+.form-select:focus,
+.form-check-input:focus {
+    box-shadow: 0 0 0 0.1rem var(--avenor-white), 0 0 0 0.25rem var(--avenor-focus);
+}
+
 /* A visible focus ring on every interactive control (accessibility baseline). */
 .btn:focus-visible,
 .form-control:focus,
@@ -228,7 +235,8 @@ main {
     color: var(--avenor-navy);
 }
 
-.form-control {
+.form-control,
+.form-select {
     min-height: 3rem;
     border-color: var(--avenor-border);
 }
@@ -615,7 +623,8 @@ main {
     border-top: 1px solid var(--avenor-border);
 }
 
-.action-link {
+.action-link,
+.action-item {
     display: flex;
     align-items: center;
     gap: 1rem;
@@ -624,7 +633,8 @@ main {
     text-decoration: none;
 }
 
-.action-link .icon-tile {
+.action-link .icon-tile,
+.action-item .icon-tile {
     margin-bottom: 0;
     flex-shrink: 0;
 }
@@ -794,4 +804,30 @@ main {
     .profile-security {
         border-left: 1px solid var(--avenor-border);
     }
+}
+
+/* Segmented control: mutually exclusive choices rendered as links */
+.segmented {
+    display: inline-flex;
+    flex-wrap: wrap;
+    margin-bottom: 0.5rem;
+    border: 1px solid var(--avenor-blue);
+    border-radius: 0.5rem;
+    overflow: hidden;
+}
+
+.segmented a {
+    padding: 0.6rem 1.25rem;
+    font-weight: 600;
+    color: var(--avenor-blue);
+    text-decoration: none;
+}
+
+.segmented a + a {
+    border-left: 1px solid var(--avenor-blue);
+}
+
+.segmented a[aria-current="true"] {
+    background: var(--avenor-blue);
+    color: var(--avenor-white);
 }

@@ -83,7 +83,76 @@ public sealed class BankAccountsController(IBankingApiClient api) : Controller
     public Task<IActionResult> Withdraw(Guid id, MoveMoneyViewModel model, CancellationToken cancellationToken) => MoveMoneyAsync(id, LedgerEntryType.Withdrawal, model, cancellationToken);
     #endregion
 
+    #region GET Transfer
+    [HttpGet("{id:guid}/transfer")]
+    public async Task<IActionResult> Transfer(Guid id, TransferMode mode, CancellationToken cancellationToken)
+    {
+        // One key per page load, as for deposits: a double-click or resubmission moves money once.
+        var model = new TransferViewModel { Mode = mode, IdempotencyKey = Guid.NewGuid() };
+        return await PrepareTransferAsync(id, model, cancellationToken) ?? View(model);
+    }
+    #endregion
+
+    #region POST Transfer
+    [HttpPost("{id:guid}/transfer")]
+    public async Task<IActionResult> Transfer(Guid id, TransferViewModel model, CancellationToken cancellationToken)
+    {
+        if (await PrepareTransferAsync(id, model, cancellationToken) is { } redirect)
+        {
+            return redirect;
+        }
+
+        if (!ModelState.IsValid)
+        {
+            return View(model);
+        }
+
+        // Accept numbers copied with spaces or dashes; the API expects digits only.
+        var accountNumber = new string([.. model.ToAccountNumber!.Where(char.IsAsciiDigit)]);
+        var result = await api.TransferAsync(
+            id, new TransferMoneyRequest(accountNumber, model.Amount!.Value, model.Note), model.IdempotencyKey, cancellationToken);
+
+        if (result.Value is not { } movement)
+        {
+            ModelState.AddApiProblem(result.Problem!);
+            return View(model);
+        }
+
+        // Name the destination only if it's one of the customer's own accounts.
+        var destination = model.DestinationOptions.FirstOrDefault(account => account.AccountNumber == accountNumber)?.Name
+            ?? $"•••• {accountNumber[^4..]}";
+        TempData[TempDataKeys.Notice] = movement.Replayed
+            ? "That request was already completed, so it wasn't repeated."
+            : $"Transferred {Math.Abs(movement.Entry.SignedAmount):C} to {destination}.";
+
+        return RedirectToAction(nameof(Details), new { id });
+    }
+    #endregion
+
     #region Helpers
+    private async Task<IActionResult?> PrepareTransferAsync(
+        Guid id, TransferViewModel model, CancellationToken cancellationToken)
+    {
+        var account = await api.GetAccountAsync(id, cancellationToken);
+        if (account is null)
+        {
+            return NotFound();
+        }
+
+        if (account.Status != AccountStatus.Active)
+        {
+            return RedirectToAction(nameof(Details), new { id });
+        }
+
+        model.Account = account;
+        model.DestinationOptions =
+        [
+            .. (await api.GetAccountsAsync(cancellationToken))
+                .Where(candidate => candidate.Id != id && candidate.Status == AccountStatus.Active),
+        ];
+        return null;
+    }
+
     private async Task<IActionResult> ShowMoveMoneyAsync(Guid id, LedgerEntryType kind, CancellationToken cancellationToken)
     {
         var account = await api.GetAccountAsync(id, cancellationToken);
