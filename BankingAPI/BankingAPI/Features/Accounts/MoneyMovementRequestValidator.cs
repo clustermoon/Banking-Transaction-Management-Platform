@@ -6,8 +6,7 @@ internal sealed class MoneyMovementRequestValidator : AbstractValidator<MoneyMov
 {
     public MoneyMovementRequestValidator()
     {
-        RuleFor(request => request.Amount).GreaterThan(0).LessThanOrEqualTo(1_000_000).PrecisionScale(18, 2, ignoreTrailingZeros: true);
-
+        RuleFor(request => request.Amount).MustBeAMoneyAmount();
         RuleFor(request => request.Description).MaximumLength(100);
     }
 }

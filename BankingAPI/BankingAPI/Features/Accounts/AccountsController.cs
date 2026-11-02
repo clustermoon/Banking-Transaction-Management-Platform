@@ -102,6 +102,27 @@ public sealed class AccountsController(
     public Task<IActionResult> Withdraw(Guid id, MoneyMovementRequest request, [FromHeader(Name = IdempotencyKeyHeader), Required] Guid? idempotencyKey, CancellationToken cancellationToken) => MoveMoneyAsync(ledger.WithdrawAsync, id, request, idempotencyKey!.Value, "Online withdrawal", cancellationToken);
     #endregion
 
+    #region POST Transfers
+    [HttpPost("{id:guid}/transfers")]
+    [ProducesResponseType<LedgerEntryResponse>(StatusCodes.Status201Created)]
+    [ProducesResponseType<LedgerEntryResponse>(StatusCodes.Status200OK)]
+    [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status422UnprocessableEntity)]
+    public async Task<IActionResult> Transfer(
+    Guid id,
+    TransferMoneyRequest request,
+    [FromHeader(Name = IdempotencyKeyHeader), Required] Guid? idempotencyKey,
+    CancellationToken cancellationToken)
+    {
+        var result = await ledger.TransferAsync(
+            new TransferRequest(User.GetUserId(), id, request.ToAccountNumber, request.Amount, request.Note, idempotencyKey!.Value),
+            cancellationToken);
+
+        return ToResponse(result);
+    }
+    #endregion
+
     #region Helpers
     // A new movement is 201 Created; a replayed retry returns the original entry with 200 OK.
     private async Task<IActionResult> MoveMoneyAsync(
@@ -115,6 +136,12 @@ public sealed class AccountsController(
         var description = string.IsNullOrWhiteSpace(request.Description) ? defaultDescription : request.Description.Trim();
         var result = await operation(new LedgerRequest(User.GetUserId(), accountId, request.Amount, description, idempotencyKey), cancellationToken);
 
+        return ToResponse(result);
+    }
+
+    // A new movement is 201 Created; a replayed retry returns the original entry with 200 OK.
+    private IActionResult ToResponse(LedgerOperationResult result)
+    {
         var body = LedgerEntryResponse.From(result.Entry);
         return result.Replayed ? Ok(body) : StatusCode(StatusCodes.Status201Created, body);
     }
