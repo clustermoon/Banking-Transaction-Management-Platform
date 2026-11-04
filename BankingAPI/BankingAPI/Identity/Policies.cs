@@ -9,4 +9,9 @@ public static class Policies
     /// Personal banking: only customers own accounts and move money.
     /// </summary>
     public const string Customer = "Customer";
+
+    /// <summary>
+    /// Account oversight: viewing all accounts, changing their status, reading the audit log.
+    /// </summary>
+    public const string Admin = "Admin";
 }

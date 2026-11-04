@@ -3,14 +3,10 @@ using BankingAPI.Domain.Accounts;
 
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace BankingAPI.Infrastructure.Errors;
 
-/// <summary>
-/// Turns exceptions into RFC 7807 responses. Domain exceptions carry messages written for
-/// customers and map to 404 or 422. Anything else is a bug: it's logged and returned as a
-/// generic 500, so internal details never reach the caller.
-/// </summary>
 internal sealed partial class GlobalExceptionHandler(IProblemDetailsService problemDetailsService, ILogger<GlobalExceptionHandler> logger) : IExceptionHandler
 {
     public async ValueTask<bool> TryHandleAsync(HttpContext httpContext, Exception exception, CancellationToken cancellationToken)
@@ -19,6 +15,7 @@ internal sealed partial class GlobalExceptionHandler(IProblemDetailsService prob
         {
             AccountNotFoundException notFound => (StatusCodes.Status404NotFound, "Account not found", notFound.Message),
             BusinessRuleException ruleBroken => (StatusCodes.Status422UnprocessableEntity, "Request could not be completed", ruleBroken.Message),
+            DbUpdateConcurrencyException => (StatusCodes.Status409Conflict, "Account changed", "This account was changed by someone else. Reload it and try again."),
             _ => (StatusCodes.Status500InternalServerError, "An unexpected error occurred.", null),
         };
 
