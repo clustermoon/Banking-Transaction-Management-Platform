@@ -2,6 +2,7 @@ using System.Text.Json.Serialization;
 
 using BankingAPI.Data;
 using BankingAPI.Data.Seeding;
+using BankingAPI.Domain.Accounts;
 using BankingAPI.Domain.Ledger;
 using BankingAPI.Identity;
 using BankingAPI.Infrastructure.Errors;
@@ -71,6 +72,7 @@ public sealed class Program
         builder.Services.AddBankingIdentity();
         builder.Services.AddBankingAuthentication();
         builder.Services.AddScoped<LedgerService>();
+        builder.Services.AddScoped<AccountAdministrationService>();
 
         // --- HTTP and Application Services ---
         //

@@ -17,7 +17,7 @@ internal static class DatabaseTestData
 
     public static async Task<TestAccount> CreateAccountAsync(BankingApiFactory factory, Guid? ownerId, CancellationToken cancellationToken)
     {
-        var owner = ownerId ?? await RegisterOwnerAsync(factory, cancellationToken);
+        var owner = ownerId ?? await CreateUserAsync(factory, cancellationToken);
 
         using var scope = factory.Services.CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<BankingDbContext>();
@@ -28,7 +28,7 @@ internal static class DatabaseTestData
         return new TestAccount(account.Id, owner, account.AccountNumber);
     }
 
-    private static async Task<Guid> RegisterOwnerAsync(BankingApiFactory factory, CancellationToken cancellationToken)
+    public static async Task<Guid> CreateUserAsync(BankingApiFactory factory, CancellationToken cancellationToken)
     {
         using var client = factory.CreateClient();
         var email = await client.RegisterUserAsync(cancellationToken);
