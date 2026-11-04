@@ -1,18 +1,19 @@
 @model int
 @{
-    var notFound = Model == 404;
-    ViewData["Title"] = notFound ? "Page not found" : "Something went wrong";
+    var (icon, title, message) = Model switch
+    {
+        404 => ("bi-compass", "We couldn't find that page.", "Check the address, or head back to somewhere familiar."),
+        403 => ("bi-shield-lock", "You don't have access to that page.", "It belongs to a different kind of account than the one you're signed in with."),
+        _ => ("bi-exclamation-triangle", "Something went wrong.", "Please try again in a moment."),
+    };
+    ViewData["Title"] = title;
 }
 
 <div class="page-surface">
     <div class="container page-content text-center">
-        <span class="icon-tile">
-            <i class="bi @(notFound ? "bi-compass" : "bi-exclamation-triangle")" aria-hidden="true"></i>
-        </span>
-        <h1 class="page-title">@(notFound ? "We couldn't find that page." : "Something went wrong.")</h1>
-        <p class="page-subtitle">
-            @(notFound ? "Check the address, or head back to somewhere familiar." : "Please try again in a moment.")
-        </p>
+        <span class="icon-tile"><i class="bi @icon" aria-hidden="true"></i></span>
+        <h1 class="page-title">@title</h1>
+        <p class="page-subtitle">@message</p>
         <a class="btn btn-primary" asp-controller="Home" asp-action="Index">Back to Avenor</a>
     </div>
 </div>

@@ -701,6 +701,22 @@ main {
     background: var(--avenor-page-start);
 }
 
+/* A smaller second line inside a table cell (owner email, masked number, time) */
+.cell-subtext {
+    display: block;
+    font-size: 0.8rem;
+    font-weight: 400;
+    color: var(--avenor-muted);
+}
+
+/* An audit transition: status, arrow, status */
+.status-change {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    white-space: nowrap;
+}
+
 /* 6. Pages ----------------------------------------------------------------- */
 
 /* Landing page */

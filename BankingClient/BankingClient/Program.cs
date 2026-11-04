@@ -42,6 +42,7 @@ public sealed class Program
             // The demo runs over plain HTTP in Docker; behind HTTPS the cookie is marked Secure.
             options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
             options.LoginPath = "/account/login";
+            options.AccessDeniedPath = "/error/403";
 
             // The session ends when the API token does; an expired token can't be renewed here.
             options.SlidingExpiration = false;

@@ -1,5 +1,6 @@
 using BankingClient.Api;
 using BankingClient.Api.Contracts;
+using BankingClient.Authentication;
 using BankingClient.Models;
 using BankingClient.Models.BankAccounts;
 
@@ -8,12 +9,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace BankingClient.Controllers;
 
-/// <summary>
-/// A customer's bank accounts. Named apart from AccountController, which handles signing in.
-/// An account the API reports as not found renders the 404 page, so another customer's
-/// account looks exactly like one that doesn't exist.
-/// </summary>
-[Authorize]
+[Authorize(Roles = ClientRoles.Customer)]
 [Route("accounts")]
 public sealed class BankAccountsController(IBankingApiClient api) : Controller
 {

@@ -43,8 +43,8 @@ public sealed class AccountController(IBankingApiClient api) : Controller
             return View(model);
         }
 
-        await SignInAsync(session, cancellationToken);
-        return RedirectToLocal(model.ReturnUrl);
+        var profile = await SignInAsync(session, cancellationToken);
+        return RedirectToLocal(model.ReturnUrl, profile);
     }
     #endregion
 
@@ -78,7 +78,7 @@ public sealed class AccountController(IBankingApiClient api) : Controller
         }
 
         await SignInAsync(session, cancellationToken);
-        return RedirectToSignedInHome();
+        return SignedInHome.For(isAdmin: false);
     }
     #endregion
 
@@ -96,20 +96,17 @@ public sealed class AccountController(IBankingApiClient api) : Controller
     #endregion
 
     #region Helper Methods
-    // Enrich the cookie with the current profile and token expiration. The cookie is
-    // then used by BearerTokenHandler when subsequent requests call the API.
-    private async Task SignInAsync(LoginResponse session, CancellationToken cancellationToken)
+    private async Task<ProfileResponse> SignInAsync(LoginResponse session, CancellationToken cancellationToken)
     {
         var profile = await api.GetProfileAsync(session.AccessToken, cancellationToken);
         await HttpContext.SignInAsync(
             CookieAuthenticationDefaults.AuthenticationScheme,
             ClientSession.CreatePrincipal(profile),
-            ClientSession.CreateProperties(session)
-        );
+            ClientSession.CreateProperties(session));
+        return profile;
     }
+    private IActionResult RedirectToLocal(string? returnUrl, ProfileResponse profile) => Url.IsLocalUrl(returnUrl) ? Redirect(returnUrl) : SignedInHome.For(profile.Roles.Contains(ClientRoles.Admin));
 
-    // API validation keys match the view-model property names, allowing MVC to render
-    // each message beside the corresponding input field.
     private void AddProblemErrors(ApiProblem problem)
     {
         if (problem.Errors.Count == 0)
@@ -118,8 +115,6 @@ public sealed class AccountController(IBankingApiClient api) : Controller
             return;
         }
 
-        // The API names fields like the view model does (Email, Password), so each
-        // error appears beside the field it belongs to.
         foreach (var (field, messages) in problem.Errors)
         {
             foreach (var message in messages)
@@ -129,10 +124,8 @@ public sealed class AccountController(IBankingApiClient api) : Controller
         }
     }
 
-    // Preserve only local return URLs to prevent an external redirect after login.
     private IActionResult RedirectToLocal(string? returnUrl) => Url.IsLocalUrl(returnUrl) ? Redirect(returnUrl) : RedirectToSignedInHome();
 
-    // Where a user lands after signing in. Phase 4 changes this to the dashboard.
     private RedirectToActionResult RedirectToSignedInHome() => RedirectToAction(nameof(DashboardController.Index), "Dashboard");
     #endregion
 }

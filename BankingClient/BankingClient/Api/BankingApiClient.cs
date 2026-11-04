@@ -11,13 +11,8 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace BankingClient.Api;
 
-/// <summary>
-/// The client's only route to the API. Each method maps the status codes it expects to a
-/// result, a 401 on a signed-in call to ApiUnauthorizedException, and anything else to an exception.
-/// </summary>
 public sealed class BankingApiClient(HttpClient httpClient) : IBankingApiClient
 {
-    // The API writes enums as names ("Checking", "Frozen").
     private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web) { Converters = { new JsonStringEnumConverter() } };
 
     #region Login
@@ -173,6 +168,80 @@ public sealed class BankingApiClient(HttpClient httpClient) : IBankingApiClient
         };
     }
 
+    #endregion
+
+    #region Get Admin Accounts
+    public async Task<IReadOnlyList<AdminAccountResponse>> GetAdminAccountsAsync(CancellationToken cancellationToken)
+    {
+        using var response = await httpClient.GetAsync(new Uri("api/admin/accounts", UriKind.Relative), cancellationToken);
+        EnsureSessionAccepted(response);
+        if (response.StatusCode != HttpStatusCode.OK)
+        {
+            throw UnexpectedStatus(response);
+        }
+
+        return await ReadAsync<List<AdminAccountResponse>>(response, cancellationToken);
+    }
+    #endregion
+
+    #region Get Admin Account
+    public async Task<AdminAccountResponse?> GetAdminAccountAsync(Guid accountId, CancellationToken cancellationToken)
+    {
+        using var response = await httpClient.GetAsync(
+            new Uri($"api/admin/accounts/{accountId}", UriKind.Relative), cancellationToken);
+        EnsureSessionAccepted(response);
+
+        return response.StatusCode switch
+        {
+            HttpStatusCode.OK => await ReadAsync<AdminAccountResponse>(response, cancellationToken),
+            HttpStatusCode.NotFound => null,
+            _ => throw UnexpectedStatus(response),
+        };
+    }
+    #endregion
+
+    #region Get Audit Log
+    public async Task<IReadOnlyList<AuditEntryResponse>> GetAuditLogAsync(Guid? accountId, CancellationToken cancellationToken)
+    {
+        var path = accountId is { } id ? $"api/admin/audit?accountId={id}" : "api/admin/audit";
+        using var response = await httpClient.GetAsync(new Uri(path, UriKind.Relative), cancellationToken);
+        EnsureSessionAccepted(response);
+        if (response.StatusCode != HttpStatusCode.OK)
+        {
+            throw UnexpectedStatus(response);
+        }
+
+        return await ReadAsync<List<AuditEntryResponse>>(response, cancellationToken);
+    }
+    #endregion
+
+    #region Change Account Status
+    public async Task<ApiResult<AuditEntryResponse>> ChangeAccountStatusAsync(
+        Guid accountId, AccountStatus toStatus, string reason, CancellationToken cancellationToken)
+    {
+        var action = toStatus switch
+        {
+            AccountStatus.Frozen => "freeze",
+            AccountStatus.Active => "unfreeze",
+            AccountStatus.Closed => "close",
+            _ => throw new ArgumentOutOfRangeException(nameof(toStatus), toStatus, "Unsupported target status."),
+        };
+
+        using var response = await httpClient.PostAsJsonAsync(
+            new Uri($"api/admin/accounts/{accountId}/{action}", UriKind.Relative),
+            new StatusChangeRequest(reason),
+            JsonOptions,
+            cancellationToken);
+        EnsureSessionAccepted(response);
+
+        return response.StatusCode switch
+        {
+            HttpStatusCode.OK => Success(await ReadAsync<AuditEntryResponse>(response, cancellationToken)),
+            HttpStatusCode.BadRequest or HttpStatusCode.NotFound or HttpStatusCode.Conflict or HttpStatusCode.UnprocessableEntity =>
+                Failure<AuditEntryResponse>(await ReadProblemAsync(response, cancellationToken)),
+            _ => throw UnexpectedStatus(response),
+        };
+    }
     #endregion
 
     #region Helpers

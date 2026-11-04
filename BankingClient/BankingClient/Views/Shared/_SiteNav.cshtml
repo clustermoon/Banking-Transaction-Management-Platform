@@ -2,20 +2,33 @@
     var controller = ViewContext.RouteData.Values["controller"] as string;
     var action = ViewContext.RouteData.Values["action"] as string;
     bool IsController(string name) => string.Equals(controller, name, StringComparison.OrdinalIgnoreCase);
-
-    // Account pages sit under the dashboard; opening an account has its own nav item.
-    var onOpenAccount = IsController("BankAccounts") && string.Equals(action, "Open", StringComparison.OrdinalIgnoreCase);
-    var onDashboard = IsController("Dashboard") || (IsController("BankAccounts") && !onOpenAccount);
-    var onProfile = IsController("Profile");
+    bool IsAction(string name) => string.Equals(action, name, StringComparison.OrdinalIgnoreCase);
 }
 
 @if (User.Identity?.IsAuthenticated == true)
 {
-    <a class="site-nav-link @(onDashboard ? "active" : null)" aria-current="@(IsController("Dashboard") ? "page" : null)"
-       asp-controller="Dashboard" asp-action="Index">Dashboard</a>
-    <a class="site-nav-link @(onOpenAccount ? "active" : null)" aria-current="@(onOpenAccount ? "page" : null)"
-       asp-controller="BankAccounts" asp-action="Open">Open account</a>
-    <a class="site-nav-link @(onProfile ? "active" : null)" aria-current="@(onProfile ? "page" : null)"
+    if (User.IsInRole(ClientRoles.Admin))
+    {
+        var onAccounts = IsController("Admin") && !IsAction("Audit");
+        var onAudit = IsController("Admin") && IsAction("Audit");
+
+        <a class="site-nav-link @(onAccounts ? "active" : null)" aria-current="@(onAccounts && IsAction("Accounts") ? "page" : null)"
+           asp-controller="Admin" asp-action="Accounts">Accounts</a>
+        <a class="site-nav-link @(onAudit ? "active" : null)" aria-current="@(onAudit ? "page" : null)"
+           asp-controller="Admin" asp-action="Audit">Audit log</a>
+    }
+    else
+    {
+        var onOpenAccount = IsController("BankAccounts") && IsAction("Open");
+        var onDashboard = IsController("Dashboard") || (IsController("BankAccounts") && !onOpenAccount);
+
+        <a class="site-nav-link @(onDashboard ? "active" : null)" aria-current="@(IsController("Dashboard") ? "page" : null)"
+           asp-controller="Dashboard" asp-action="Index">Dashboard</a>
+        <a class="site-nav-link @(onOpenAccount ? "active" : null)" aria-current="@(onOpenAccount ? "page" : null)"
+           asp-controller="BankAccounts" asp-action="Open">Open account</a>
+    }
+
+    <a class="site-nav-link @(IsController("Profile") ? "active" : null)" aria-current="@(IsController("Profile") ? "page" : null)"
        asp-controller="Profile" asp-action="Index">
         <i class="bi bi-person-circle" aria-hidden="true"></i> @User.Identity.Name
     </a>

@@ -109,4 +109,37 @@ public sealed class BankingApiClientTests
     }
     #endregion
 
+    #region THEORY? - Status Change Is Sent To The Matching Action
+    [Theory]
+    [InlineData(AccountStatus.Frozen, "freeze")]
+    [InlineData(AccountStatus.Active, "unfreeze")]
+    [InlineData(AccountStatus.Closed, "close")]
+    public async Task StatusChangeIsSentToTheMatchingAction(AccountStatus toStatus, string action)
+    {
+        var handler = new StubHttpMessageHandler(HttpStatusCode.UnprocessableEntity, """{ "title": "Refused" }""");
+        using var httpClient = new HttpClient(handler) { BaseAddress = new Uri("http://api.test/") };
+        var api = new BankingApiClient(httpClient);
+        var accountId = Guid.NewGuid();
+
+        await api.ChangeAccountStatusAsync(accountId, toStatus, "Test", TestContext.Current.CancellationToken);
+
+        Assert.Equal($"/api/admin/accounts/{accountId}/{action}", handler.LastRequest!.RequestUri!.AbsolutePath);
+    }
+    #endregion
+
+    #region FACT? - Losing A Race To Another Admin Comes Back As A Problem
+    [Fact]
+    public async Task LosingARaceToAnotherAdminComesBackAsAProblem()
+    {
+        using var httpClient = CreateHttpClient(
+            HttpStatusCode.Conflict,
+            """{ "title": "Account changed", "detail": "This account was changed by someone else. Reload it and try again.", "status": 409 }""");
+        var api = new BankingApiClient(httpClient);
+
+        var result = await api.ChangeAccountStatusAsync(
+            Guid.NewGuid(), AccountStatus.Frozen, "Test", TestContext.Current.CancellationToken);
+
+        Assert.Equal("This account was changed by someone else. Reload it and try again.", result.Problem!.Detail);
+    }
+    #endregion
 }

@@ -1,4 +1,5 @@
 using BankingClient.Api;
+using BankingClient.Authentication;
 using BankingClient.Models.Dashboard;
 
 using Microsoft.AspNetCore.Authorization;
@@ -6,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace BankingClient.Controllers;
 
-[Authorize]
+[Authorize(Roles = ClientRoles.Customer)]
 [Route("dashboard")]
 public sealed class DashboardController(IBankingApiClient api) : Controller
 {

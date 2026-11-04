@@ -1,0 +1,53 @@
+@model IReadOnlyList<AuditEntryResponse>
+@{
+    ViewData["Title"] = "Audit log";
+}
+
+<div class="page-surface">
+    <div class="container page-content">
+        <p class="eyebrow">Operations</p>
+        <h1 class="page-title">Audit log</h1>
+        <p class="page-subtitle">Every account status change, newest first. Entries can't be edited or deleted.</p>
+
+        <section class="panel panel-body" aria-label="Audit entries">
+            @if (Model.Count == 0)
+            {
+                <p class="empty-state">No status changes have been recorded.</p>
+            }
+            else
+            {
+                <div class="table-scroll">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th scope="col">When</th>
+                                <th scope="col">Account</th>
+                                <th scope="col">Change</th>
+                                <th scope="col">Reason</th>
+                                <th scope="col">By</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var entry in Model)
+                            {
+                                <tr>
+                                    <td class="text-nowrap">
+                                        @entry.OccurredAt.UtcDateTime.ToString("MMM d, yyyy")
+                                        <span class="cell-subtext">@entry.OccurredAt.UtcDateTime.ToString("HH:mm") UTC</span>
+                                    </td>
+                                    <td>
+                                        <a class="cell-strong" asp-action="Manage" asp-route-id="@entry.AccountId">@entry.AccountName</a>
+                                        <span class="cell-subtext">@entry.MaskedNumber · @entry.OwnerName</span>
+                                    </td>
+                                    <td><partial name="_StatusChange" model="entry" /></td>
+                                    <td>@entry.Reason</td>
+                                    <td>@entry.ActorName</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </section>
+    </div>
+</div>
