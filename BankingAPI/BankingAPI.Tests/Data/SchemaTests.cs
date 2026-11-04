@@ -22,17 +22,6 @@ public sealed class SchemaTests(BankingApiFactory factory)
     }
     #endregion
 
-    #region FACT? - Customer Role is Seeded By Migration
-    [Fact]
-    public async Task CustomerRoleIsSeededByMigration()
-    {
-        using var scope = factory.Services.CreateScope();
-        var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole<Guid>>>();
-
-        Assert.True(await roleManager.RoleExistsAsync(Roles.Customer));
-    }
-    #endregion
-
     #region FACT? - Database Rejects A Negative Balance
     [Fact]
     public async Task DatabaseRejectsANegativeBalance()
@@ -120,4 +109,42 @@ public sealed class SchemaTests(BankingApiFactory factory)
         Assert.Contains("CK_LedgerEntries_TransferShape", error.Message, StringComparison.Ordinal);
     }
     #endregion
+
+    #region THEORY? - Role Is Seeded By Migration
+    [Theory]
+    [InlineData(Roles.Customer)]
+    [InlineData(Roles.Admin)]
+    public async Task RoleIsSeededByMigration(string role)
+    {
+        using var scope = factory.Services.CreateScope();
+        var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole<Guid>>>();
+
+        Assert.True(await roleManager.RoleExistsAsync(role));
+    }
+    #endregion
+
+    #region THEORY? - Audit Entries Cannot Be Rewritten
+    [Theory]
+    [InlineData("UPDATE AuditEntries SET Reason = 'Rewritten' WHERE AccountId = @accountId")]
+    [InlineData("DELETE FROM AuditEntries WHERE AccountId = @accountId")]
+    public async Task AuditEntriesCannotBeRewritten(string tamperSql)
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var account = await DatabaseTestData.CreateAccountAsync(factory, cancellationToken);
+        using var scope = factory.Services.CreateScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<BankingDbContext>();
+
+        // The account's owner stands in for an actor; real entries come from the admin service.
+        await dbContext.Database.ExecuteSqlAsync(
+            $"""
+            INSERT INTO AuditEntries (OccurredAt, ActorUserId, AccountId, FromStatus, ToStatus, Reason)
+            VALUES (SYSDATETIMEOFFSET(), {account.OwnerId}, {account.Id}, 'Active', 'Frozen', 'Test entry')
+            """, cancellationToken);
+
+        var error = await Assert.ThrowsAsync<SqlException>(() => dbContext.Database.ExecuteSqlRawAsync(tamperSql, [new SqlParameter("@accountId", account.Id)], cancellationToken));
+
+        Assert.Equal(51000, error.Number);
+    }
+    #endregion
+
 }

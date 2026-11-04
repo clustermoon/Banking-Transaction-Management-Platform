@@ -1,4 +1,5 @@
 using BankingAPI.Domain.Accounts;
+using BankingAPI.Domain.Audit;
 using BankingAPI.Domain.Ledger;
 using BankingAPI.Identity;
 
@@ -18,6 +19,8 @@ public sealed class BankingDbContext(DbContextOptions<BankingDbContext> options)
     public DbSet<LedgerEntry> LedgerEntries => Set<LedgerEntry>();
 
     public DbSet<IdempotencyRecord> IdempotencyRecords => Set<IdempotencyRecord>();
+
+    public DbSet<AuditEntry> AuditEntries => Set<AuditEntry>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
