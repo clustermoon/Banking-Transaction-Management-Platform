@@ -1,16 +1,18 @@
 namespace BankingAPI.Data.Seeding;
 
-/// <summary>
-/// Public demo credentials, deliberately published in the README and on the client's login
-/// page so reviewers can sign in immediately. Safe only because seeding is off by default and
-/// refused in Production. Emails use the reserved .test domain, which can never receive mail.
-/// </summary>
 public static class DemoCredentials
 {
+    // Customers
     public const string CustomerPassword = "Avenor-Demo-2026";
     public const string AliceEmail = "alice@avenor.test";
     public const string BenEmail = "ben@avenor.test";
     public const string CaraEmail = "cara@avenor.test";
+
+
+    // Admin 
+    public const string AdminEmail = "admin@avenor.test";
+    public const string AdminPassword = "Avenor-Admin-2026";
+    public const string AdminDisplayName = "Sam Rivera";
 
     public static readonly IReadOnlyList<DemoUser> Customers =
     [

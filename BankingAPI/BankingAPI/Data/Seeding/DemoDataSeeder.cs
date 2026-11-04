@@ -11,27 +11,16 @@ using Microsoft.EntityFrameworkCore;
 
 namespace BankingAPI.Data.Seeding;
 
-/// <summary>
-/// Creates the demo customers, accounts, and history through the same code paths as real
-/// activity: CustomerRegistrar for users, Account.Open and the lifecycle methods for accounts,
-/// and LedgerService for every dollar. Safe to run on every startup: existing customers and
-/// accounts are skipped, and recorded transactions are replayed rather than repeated.
-/// </summary>
-public sealed partial class DemoDataSeeder(
-    UserManager<ApplicationUser> userManager,
-    CustomerRegistrar customerRegistrar,
-    BankingDbContext dbContext,
-    TimeProvider timeProvider,
-    ILogger<DemoDataSeeder> logger)
+public sealed partial class DemoDataSeeder(UserManager<ApplicationUser> userManager, CustomerRegistrar customerRegistrar, BankingDbContext dbContext, TimeProvider timeProvider, ILogger<DemoDataSeeder> logger)
 {
     public async Task SeedAsync(CancellationToken cancellationToken)
     {
         await SeedCustomersAsync(cancellationToken);
+        var adminId = await SeedAdminAsync();
 
         var now = timeProvider.GetUtcNow();
         var accounts = await OpenAccountsAsync(now, cancellationToken);
-        await RecordHistoryAsync(accounts, now, cancellationToken);
-        await ApplyStatusesAsync(cancellationToken);
+        await RecordHistoryAsync(accounts, adminId, now, cancellationToken);
         await VerifyLedgerAsync(accounts, cancellationToken);
     }
 
@@ -48,12 +37,35 @@ public sealed partial class DemoDataSeeder(
 
             if (registration.User is null)
             {
-                var errors = string.Join("; ", registration.Outcome.Errors.Select(error => error.Description));
-                throw new InvalidOperationException($"Seeding demo customer {demoUser.Email} failed: {errors}");
+                throw new InvalidOperationException(
+                    $"Seeding demo customer {demoUser.Email} failed: {Describe(registration.Outcome)}");
             }
 
-            LogSeededCustomer(logger, demoUser.Email);
+            LogSeededUser(logger, demoUser.Email);
         }
+    }
+
+    private async Task<Guid> SeedAdminAsync()
+    {
+        var admin = await userManager.FindByEmailAsync(DemoCredentials.AdminEmail);
+        if (admin is null)
+        {
+            admin = new ApplicationUser
+            {
+                UserName = DemoCredentials.AdminEmail,
+                Email = DemoCredentials.AdminEmail,
+                DisplayName = DemoCredentials.AdminDisplayName,
+            };
+            EnsureSucceeded(await userManager.CreateAsync(admin, DemoCredentials.AdminPassword), "creating the demo admin");
+            LogSeededUser(logger, DemoCredentials.AdminEmail);
+        }
+
+        if (!await userManager.IsInRoleAsync(admin, Roles.Admin))
+        {
+            EnsureSucceeded(await userManager.AddToRoleAsync(admin, Roles.Admin), "assigning the demo admin's role");
+        }
+
+        return admin.Id;
     }
 
     private async Task<Dictionary<string, (Guid Id, Guid OwnerId)>> OpenAccountsAsync(
@@ -77,65 +89,80 @@ public sealed partial class DemoDataSeeder(
         return await dbContext.Accounts.AsNoTracking().Where(account => numbers.Contains(account.AccountNumber)).ToDictionaryAsync(account => account.AccountNumber, account => (account.Id, account.OwnerId), cancellationToken);
     }
 
-    private async Task RecordHistoryAsync(Dictionary<string, (Guid Id, Guid OwnerId)> accounts, DateTimeOffset now, CancellationToken cancellationToken)
+    private async Task RecordHistoryAsync(Dictionary<string, (Guid Id, Guid OwnerId)> accounts, Guid adminId, DateTimeOffset now, CancellationToken cancellationToken)
     {
-        // The real ledger service, given a clock set to each transaction's date. Oldest first,
-        // so each account's ledger order matches its history's date order.
         var clock = new SeedingClock();
         var ledger = new LedgerService(dbContext, clock);
+        var administration = new AccountAdministrationService(dbContext, clock);
 
-        foreach (var demo in DemoBankingData.Transactions.OrderByDescending(transaction => transaction.DaysAgo))
+        var events = DemoBankingData.Transactions.Select(transaction => (transaction.DaysAgo, Event: (object)transaction)).Concat(DemoBankingData.StatusChanges.Select(change => (change.DaysAgo, Event: (object)change))).OrderByDescending(demoEvent => demoEvent.DaysAgo);
+
+        foreach (var (daysAgo, demoEvent) in events)
         {
-            var (accountId, ownerId) = accounts[demo.AccountNumber];
-            clock.SetUtcNow(now.AddDays(-demo.DaysAgo));
-            var key = IdempotencyKeyFor(demo);
+            clock.SetUtcNow(now.AddDays(-daysAgo));
 
-            switch (demo.Type)
+            switch (demoEvent)
             {
-                case LedgerEntryType.Deposit:
-                    await ledger.DepositAsync(new LedgerRequest(ownerId, accountId, demo.Amount, demo.Description, key), cancellationToken);
+                case DemoTransaction transaction:
+                    await RecordTransactionAsync(ledger, transaction, accounts[transaction.AccountNumber], cancellationToken);
                     break;
-
-                case LedgerEntryType.Withdrawal:
-                    await ledger.WithdrawAsync(new LedgerRequest(ownerId, accountId, demo.Amount, demo.Description, key), cancellationToken);
+                case DemoStatusChange change:
+                    await RecordStatusChangeAsync(administration, change, accounts[change.AccountNumber].Id, adminId, cancellationToken);
                     break;
-
-                case LedgerEntryType.TransferOut:
-                    var destination = demo.ToAccountNumber ?? throw new InvalidOperationException($"Demo transfer from {demo.AccountNumber} has no destination.");
-                    await ledger.TransferAsync(new TransferRequest(ownerId, accountId, destination, demo.Amount, demo.Description, key), cancellationToken);
-                    break;
-
-                default:
-                    // An incoming transfer is recorded by its outgoing half, never written on its own.
-                    throw new InvalidOperationException($"Demo transactions can't be of type {demo.Type}.");
             }
         }
     }
 
-    private async Task ApplyStatusesAsync(CancellationToken cancellationToken)
+    private static async Task RecordTransactionAsync(
+        LedgerService ledger, DemoTransaction demo, (Guid Id, Guid OwnerId) account, CancellationToken cancellationToken)
     {
-        // Balances were changed by SQL the change tracker never saw; load accounts fresh.
+        var key = IdempotencyKeyFor(demo);
+
+        switch (demo.Type)
+        {
+            case LedgerEntryType.Deposit:
+                await ledger.DepositAsync(
+                    new LedgerRequest(account.OwnerId, account.Id, demo.Amount, demo.Description, key), cancellationToken);
+                break;
+
+            case LedgerEntryType.Withdrawal:
+                await ledger.WithdrawAsync(
+                    new LedgerRequest(account.OwnerId, account.Id, demo.Amount, demo.Description, key), cancellationToken);
+                break;
+
+            case LedgerEntryType.TransferOut:
+                var destination = demo.ToAccountNumber
+                    ?? throw new InvalidOperationException($"Demo transfer from {demo.AccountNumber} has no destination.");
+                await ledger.TransferAsync(
+                    new TransferRequest(account.OwnerId, account.Id, destination, demo.Amount, demo.Description, key),
+                    cancellationToken);
+                break;
+
+            default:
+                throw new InvalidOperationException($"Demo transactions can't be of type {demo.Type}.");
+        }
+    }
+
+    private async Task RecordStatusChangeAsync(AccountAdministrationService administration, DemoStatusChange change, Guid accountId, Guid adminId, CancellationToken cancellationToken)
+    {
+        if (await dbContext.AuditEntries.AnyAsync(
+                entry => entry.AccountId == accountId && entry.ToStatus == change.ToStatus && entry.Reason == change.Reason,
+                cancellationToken))
+        {
+            return;
+        }
+
         dbContext.ChangeTracker.Clear();
 
-        foreach (var demo in DemoBankingData.Accounts.Where(demo => demo.Status != AccountStatus.Active))
+        _ = change.ToStatus switch
         {
-            var account = await dbContext.Accounts.SingleAsync(candidate => candidate.AccountNumber == demo.AccountNumber, cancellationToken);
-            if (account.Status == demo.Status) { continue; }
-
-            if (demo.Status == AccountStatus.Frozen)
-            {
-                account.Freeze();
-            }
-            else
-            {
-                account.Close();
-            }
-        }
-
-        await dbContext.SaveChangesAsync(cancellationToken);
+            AccountStatus.Frozen => await administration.FreezeAsync(adminId, accountId, change.Reason, cancellationToken),
+            AccountStatus.Active => await administration.UnfreezeAsync(adminId, accountId, change.Reason, cancellationToken),
+            AccountStatus.Closed => await administration.CloseAsync(adminId, accountId, change.Reason, cancellationToken),
+            _ => throw new InvalidOperationException($"Demo status changes can't target {change.ToStatus}."),
+        };
     }
 
-    // Refuse to start with demo data the ledger can't account for.
     private async Task VerifyLedgerAsync(
         Dictionary<string, (Guid Id, Guid OwnerId)> accounts, CancellationToken cancellationToken)
     {
@@ -147,13 +174,22 @@ public sealed partial class DemoDataSeeder(
         }
     }
 
-    // Stable for each transaction, so a restart replays seeded history instead of repeating it.
     private static Guid IdempotencyKeyFor(DemoTransaction demo)
     {
         var identity = string.Create(CultureInfo.InvariantCulture, $"demo|{demo.AccountNumber}|{demo.DaysAgo}|{demo.Description}");
         return new Guid(SHA256.HashData(Encoding.UTF8.GetBytes(identity)).AsSpan(0, 16));
     }
 
-    [LoggerMessage(Level = LogLevel.Information, Message = "Seeded demo customer {Email}")]
-    private static partial void LogSeededCustomer(ILogger logger, string email);
+    private static void EnsureSucceeded(IdentityResult result, string action)
+    {
+        if (!result.Succeeded)
+        {
+            throw new InvalidOperationException($"Seeding failed while {action}: {Describe(result)}");
+        }
+    }
+
+    private static string Describe(IdentityResult result) => string.Join("; ", result.Errors.Select(error => error.Description));
+
+    [LoggerMessage(Level = LogLevel.Information, Message = "Seeded demo user {Email}")]
+    private static partial void LogSeededUser(ILogger logger, string email);
 }
