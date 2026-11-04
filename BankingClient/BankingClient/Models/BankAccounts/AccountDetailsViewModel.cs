@@ -3,15 +3,15 @@ using BankingClient.Api.Contracts;
 
 namespace BankingClient.Models.BankAccounts;
 
+/// <summary>
+/// Provides data for the account details view, including the account information, transaction history, and date range for the displayed history.
+/// </summary>
 public sealed class AccountDetailsViewModel
 {
     public required AccountResponse Account { get; init; }
 
     public AccountHistoryResponse? History { get; init; }
 
-    /// <summary>
-    /// Set when the date range was invalid; the page shows it instead of the history.
-    /// </summary>
     public ApiProblem? HistoryProblem { get; init; }
 
     public required DateOnly From { get; init; }

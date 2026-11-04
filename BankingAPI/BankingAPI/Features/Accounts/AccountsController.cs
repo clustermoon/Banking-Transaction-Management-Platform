@@ -11,11 +11,6 @@ using Microsoft.EntityFrameworkCore;
 
 namespace BankingAPI.Features.Accounts;
 
-/// <summary>
-/// A customer's own accounts. Reads query the database directly; writes go through the domain:
-/// Account.Open for new accounts and LedgerService for every money movement. Another customer's
-/// account is always reported as not found, so its existence is never confirmed.
-/// </summary>
 [ApiController]
 [Route("api/accounts")]
 [Authorize(Policy = Policies.Customer)]
@@ -124,7 +119,6 @@ public sealed class AccountsController(
     #endregion
 
     #region Helpers
-    // A new movement is 201 Created; a replayed retry returns the original entry with 200 OK.
     private async Task<IActionResult> MoveMoneyAsync(
         Func<LedgerRequest, CancellationToken, Task<LedgerOperationResult>> operation,
         Guid accountId,
@@ -139,7 +133,6 @@ public sealed class AccountsController(
         return ToResponse(result);
     }
 
-    // A new movement is 201 Created; a replayed retry returns the original entry with 200 OK.
     private IActionResult ToResponse(LedgerOperationResult result)
     {
         var body = LedgerEntryResponse.From(result.Entry);

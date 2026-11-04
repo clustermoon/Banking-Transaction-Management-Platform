@@ -7,6 +7,10 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace BankingClient.Controllers;
 
+/// <summary>
+/// Displays the dashboard view, including a list of accounts and summary statistics. This controller handles requests to view the dashboard page and retrieves the necessary data from the banking API.
+/// </summary>
+/// <param name="api"></param>
 [Authorize(Roles = ClientRoles.Customer)]
 [Route("dashboard")]
 public sealed class DashboardController(IBankingApiClient api) : Controller

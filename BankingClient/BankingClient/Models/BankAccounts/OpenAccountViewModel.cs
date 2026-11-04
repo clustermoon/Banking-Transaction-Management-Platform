@@ -4,6 +4,9 @@ using BankingClient.Api.Contracts;
 
 namespace BankingClient.Models.BankAccounts;
 
+/// <summary>
+/// Provides data for the open account view, including the account type and name.
+/// </summary>
 public sealed class OpenAccountViewModel
 {
     [Required(ErrorMessage = "Choose an account type.")]

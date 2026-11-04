@@ -2,11 +2,6 @@ using BankingAPI.Domain.Accounts;
 
 namespace BankingAPI.Domain.Audit;
 
-/// <summary>
-/// An administrator's change to an account's status: who made it, when, the status before and
-/// after, and why. Written in the same transaction as the change itself, so a change and its
-/// entry exist together or not at all. A database trigger makes entries append-only.
-/// </summary>
 public sealed class AuditEntry
 {
     private AuditEntry()

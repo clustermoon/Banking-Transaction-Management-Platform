@@ -20,15 +20,6 @@ namespace BankingAPI;
 /// <summary>
 /// Defines the entry point and composition root for the Banking API.
 /// </summary>
-/// <remarks>
-/// This class brings together the application's infrastructure, identity,
-/// and HTTP services through dependency injection. It also establishes
-/// the request-processing pipeline and coordinates startup operations.
-///
-/// Keeping these responsibilities centralized provides a clear picture
-/// of how the application is assembled without requiring individual
-/// features to manage their own hosting infrastructure or startup behavior.
-/// </remarks>
 public sealed class Program
 {
     private Program()

@@ -10,10 +10,7 @@ internal static class AuthenticationServiceCollectionExtensions
 {
     public static IServiceCollection AddBankingAuthentication(this IServiceCollection services)
     {
-        services.AddOptions<JwtOptions>()
-        .BindConfiguration(JwtOptions.SectionName)
-        .ValidateDataAnnotations()
-        .ValidateOnStart();
+        services.AddOptions<JwtOptions>().BindConfiguration(JwtOptions.SectionName).ValidateDataAnnotations().ValidateOnStart();
 
         services.AddSingleton<AccessTokenIssuer>();
         services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer();

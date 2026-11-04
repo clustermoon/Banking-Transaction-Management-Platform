@@ -9,9 +9,6 @@ using Microsoft.EntityFrameworkCore;
 
 namespace BankingAPI.Data;
 
-/// <summary>
-/// The application's unit of work: Identity tables plus the banking schema.
-/// </summary>
 public sealed class BankingDbContext(DbContextOptions<BankingDbContext> options) : IdentityDbContext<ApplicationUser, IdentityRole<Guid>, Guid>(options)
 {
     public DbSet<Account> Accounts => Set<Account>();

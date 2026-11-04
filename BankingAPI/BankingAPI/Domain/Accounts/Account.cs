@@ -1,15 +1,8 @@
 namespace BankingAPI.Domain.Accounts;
 
-/// <summary>
-/// A customer's checking or savings account. Accounts are never deleted; they're closed.
-/// Status changes go through the lifecycle methods below. The balance is never changed
-/// on this object: money moves only through the ledger service's atomic database updates,
-/// which keep the balance equal to the account's ledger history.
-/// </summary>
 public sealed class Account
 {
     #region Account Properties
-    // For EF Core, which materializes accounts from the database.
     private Account() { }
 
     public Guid Id { get; private set; }

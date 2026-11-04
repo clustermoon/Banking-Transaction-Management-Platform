@@ -7,6 +7,9 @@ using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 
 namespace BankingClient.Models.Admin;
 
+/// <summary>
+/// Provides data for the manage account view, including the account information, audit history, and status change details.
+/// </summary>
 public sealed class ManageAccountViewModel
 {
     [BindNever]

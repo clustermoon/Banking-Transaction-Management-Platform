@@ -14,7 +14,6 @@ internal static class DatabaseMigrationExtensions
     {
         if (!app.Configuration.GetValue<bool>("Database:MigrateOnStartup")) { return; }
 
-        // Restrict the migrate on startup
         if (app.Environment.IsProduction())
         {
             throw new InvalidOperationException("Database:MigrateOnStartup must not be enabled in production");

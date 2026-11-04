@@ -2,6 +2,9 @@ using System.ComponentModel.DataAnnotations;
 
 namespace BankingClient.Models.Account;
 
+/// <summary>
+/// Provides data for the registration view, including the user's display name, email, and password.
+/// </summary>
 public sealed class RegisterViewModel
 {
     [Required]

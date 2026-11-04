@@ -5,10 +5,6 @@ using Microsoft.AspNetCore.Mvc.Filters;
 
 namespace BankingAPI.Infrastructure.Validation;
 
-/// <summary>
-/// Runs the registered FluentValidation validator for each action argument and returns the same
-/// 400 ValidationProblemDetails shape that [ApiController] produces for model-binding errors.
-/// </summary>
 internal sealed class FluentValidationFilter : IAsyncActionFilter
 {
     public async Task OnActionExecutionAsync(ActionExecutingContext context, ActionExecutionDelegate next)

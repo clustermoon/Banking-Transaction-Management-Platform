@@ -2,6 +2,9 @@ using BankingClient.Api.Contracts;
 
 namespace BankingClient.Api;
 
+/// <summary>
+/// An interface that defines the contract for a banking API client, providing methods for user authentication, account management, transaction history retrieval, and administrative operations. Implementations of this interface are responsible for communicating with the banking API to perform these actions and return the appropriate results or handle errors.
+/// </summary>
 public interface IBankingApiClient
 {
     Task<ApiResult<LoginResponse>> LoginAsync(LoginRequest request, CancellationToken cancellationToken);

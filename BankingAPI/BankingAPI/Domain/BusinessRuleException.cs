@@ -1,10 +1,5 @@
 namespace BankingAPI.Domain;
 
-/// <summary>
-/// A request that is well-formed but breaks a banking rule: closing an account that holds
-/// money, withdrawing more than the balance, moving money in a frozen account. The API
-/// returns these as 422 responses whose detail is this message.
-/// </summary>
 public sealed class BusinessRuleException : Exception
 {
     public BusinessRuleException() { }

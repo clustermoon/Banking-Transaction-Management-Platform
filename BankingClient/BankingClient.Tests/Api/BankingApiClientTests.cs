@@ -6,6 +6,9 @@ using BankingClient.Tests.Infrastructure;
 
 namespace BankingClient.Tests.Api;
 
+/// <summary>
+/// This class contains unit tests for the BankingApiClient, which is responsible for interacting with the banking API. The tests cover various scenarios, including handling unauthorized responses, validating API problem responses, ensuring idempotency in deposit operations, and verifying that account status changes are sent to the correct API endpoints. These tests help ensure that the BankingApiClient behaves correctly under different conditions and handles API responses as expected.
+/// </summary>
 public sealed class BankingApiClientTests
 {
     private static HttpClient CreateHttpClient(HttpStatusCode statusCode, string? json = null) => new(new StubHttpMessageHandler(statusCode, json)) { BaseAddress = new Uri("http://api.test/") };

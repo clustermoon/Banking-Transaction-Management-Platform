@@ -2,10 +2,6 @@ namespace BankingAPI.Data.Seeding;
 
 internal static class DemoSeedingExtensions
 {
-    /// <summary>
-    /// Seeds demo customers when <c>Seeding:Enabled</c> is set. Refused in Production so
-    /// published demo credentials can never exist in a real deployment.
-    /// </summary>
     public static async Task SeedDemoDataIfEnabledAsync(this WebApplication app)
     {
         if (!app.Configuration.GetValue<bool>("Seeding:Enabled"))

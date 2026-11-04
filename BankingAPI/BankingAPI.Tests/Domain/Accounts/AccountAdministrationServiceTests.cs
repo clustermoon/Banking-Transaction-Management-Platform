@@ -62,7 +62,6 @@ public sealed class AccountAdministrationServiceTests(BankingApiFactory factory)
         var account = await DatabaseTestData.CreateAccountAsync(factory, cancellationToken);
         var admin = await DatabaseTestData.CreateUserAsync(factory, cancellationToken);
 
-        // Unfreezing an account that isn't frozen breaks a lifecycle rule.
         await Assert.ThrowsAsync<BusinessRuleException>(() => RunAsync(service => service.UnfreezeAsync(admin, account.Id, "Not needed", cancellationToken)));
 
         Assert.Equal(AccountStatus.Active, await GetStatusAsync(account, cancellationToken));

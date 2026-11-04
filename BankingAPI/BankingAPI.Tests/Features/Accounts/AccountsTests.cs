@@ -203,7 +203,6 @@ public sealed class AccountsTests(BankingApiFactory factory)
         var sent = await transfer.ReadAsync<LedgerEntryResponse>(cancellationToken);
         var receiverHistory = await receiver.GetFromJsonAsync<AccountHistoryResponse>($"/api/accounts/{to.Id}/history", AccountsApiClientExtensions.JsonOptions, cancellationToken);
 
-        // Each side sees the other only as the last four digits, never the account's name.
         Assert.Equal($"Transfer to •••• {to.AccountNumber[^4..]}", sent.Description);
         Assert.Equal($"Transfer from •••• {from.AccountNumber[^4..]}", Assert.Single(receiverHistory!.Entries).Description);
     }
@@ -272,7 +271,6 @@ public sealed class AccountsTests(BankingApiFactory factory)
         using var ben = factory.CreateClient();
         await ben.SignInAsync(DemoCredentials.BenEmail, DemoCredentials.CustomerPassword, cancellationToken);
 
-        // Ben names Alice's account as the source and his own as the destination.
         using var response = await ben.TransferAsync(aliceAccountId, DemoBankingData.BenCheckingNumber, 10m, Guid.NewGuid(), cancellationToken);
 
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);

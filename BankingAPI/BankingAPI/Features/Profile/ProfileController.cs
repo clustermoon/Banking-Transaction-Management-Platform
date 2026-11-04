@@ -5,10 +5,6 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace BankingAPI.Features.Profile;
 
-/// <summary>
-/// The signed-in user's profile. Protected by the deny-by-default fallback policy rather
-/// than an attribute; ProfileTests proves an anonymous call is rejected.
-/// </summary>
 [ApiController]
 [Route("api/profile")]
 public sealed class ProfileController(UserManager<ApplicationUser> userManager) : ControllerBase

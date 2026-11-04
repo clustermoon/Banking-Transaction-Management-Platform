@@ -58,7 +58,6 @@ public sealed class DemoSeedingTests(BankingApiFactory factory)
             var matches = await userManager.Users.CountAsync(user => user.Email == customer.Email, cancellationToken);
             Assert.Equal(1, matches);
         }
-        // Accounts and history must also exist exactly once after the restart replays seeding.
         var dbContext = scope.ServiceProvider.GetRequiredService<BankingDbContext>();
         var demoNumbers = DemoBankingData.Accounts.Select(demo => demo.AccountNumber).ToList();
         var demoAccountIds = await dbContext.Accounts.AsNoTracking().Where(account => demoNumbers.Contains(account.AccountNumber)).Select(account => account.Id).ToListAsync(cancellationToken);
@@ -154,7 +153,6 @@ public sealed class DemoSeedingTests(BankingApiFactory factory)
         var profile = await client.GetFromJsonAsync<ProfileResponse>(
             "/api/profile", AccountsApiClientExtensions.JsonOptions, cancellationToken);
 
-        // Provisioned with only the Admin role: never also a customer.
         Assert.Equal([Roles.Admin], profile!.Roles);
     }
     #endregion

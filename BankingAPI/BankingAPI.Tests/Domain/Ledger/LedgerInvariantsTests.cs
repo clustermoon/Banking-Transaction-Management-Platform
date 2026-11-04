@@ -20,9 +20,6 @@ public sealed class LedgerInvariantsTests(BankingApiFactory factory)
         using var scope = factory.Services.CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<BankingDbContext>();
 
-        // Corrupt the ledger on purpose: $20 leaves the sender with no matching arrival.
-        // The sender's own history and balance are kept consistent, so the only thing
-        // wrong is the missing half of the transfer.
         await dbContext.Database.ExecuteSqlAsync(
             $"""
             INSERT INTO LedgerEntries (AccountId, Type, Amount, BalanceAfter, Description, OccurredAt)

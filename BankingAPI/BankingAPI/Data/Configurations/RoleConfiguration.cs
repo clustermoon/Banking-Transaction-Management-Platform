@@ -8,8 +8,6 @@ namespace BankingAPI.Data.Configurations;
 
 internal sealed class RoleConfiguration : IEntityTypeConfiguration<IdentityRole<Guid>>
 {
-    // Fixed values: HasData must be deterministic, or every build sees a model change
-    // and EF refuses to migrate with a pending-changes error.
     private static readonly Guid CustomerRoleId = new("6f1c2a4e-3b7d-4c8a-9e21-5d0f8b3a7c11");
     private static readonly Guid AdminRoleId = new("9a4d7e2b-6c1f-4b83-a5d0-2e8f1c7b4a39");
 

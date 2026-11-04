@@ -10,7 +10,6 @@ internal sealed class AccountConfiguration : IEntityTypeConfiguration<Account>
 {
     public void Configure(EntityTypeBuilder<Account> builder)
     {
-        // The database enforces these even if application code is bypassed or buggy.
         builder.ToTable(table =>
         {
             table.HasCheckConstraint("CK_Accounts_Balance_NonNegative", "[Balance] >= 0");
@@ -24,11 +23,9 @@ internal sealed class AccountConfiguration : IEntityTypeConfiguration<Account>
 
         builder.Property(account => account.Name).HasMaxLength(50);
 
-        // Stored as names, so the data reads correctly in any SQL tool.
         builder.Property(account => account.Type).HasConversion<string>().HasMaxLength(20);
         builder.Property(account => account.Status).HasConversion<string>().HasMaxLength(20).IsConcurrencyToken();
 
-        // Users are never deleted, and an account must never lose its owner.
         builder.HasOne<ApplicationUser>().WithMany().HasForeignKey(account => account.OwnerId).OnDelete(DeleteBehavior.Restrict);
     }
 }

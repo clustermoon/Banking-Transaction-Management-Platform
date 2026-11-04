@@ -1,7 +1,7 @@
 namespace BankingClient.Api.Contracts;
 
 /// <summary>
-/// Data structure for a Profile Response matching the same schema from the API (back-end).
+/// Contract for retrieving a user's profile information from the banking API, including the user's unique identifier, email address, display name, and roles. This record is used to encapsulate the necessary information returned by the API when requesting profile details.
 /// </summary>
 /// <param name="Id"></param>
 /// <param name="Email"></param>

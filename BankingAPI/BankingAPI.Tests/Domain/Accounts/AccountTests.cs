@@ -70,9 +70,7 @@ public sealed class AccountTests(BankingApiFactory factory)
         using var scope = factory.Services.CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<BankingDbContext>();
 
-        // A balance can only come from the database, which is how real accounts are loaded.
-        await dbContext.Database.ExecuteSqlAsync(
-            $"UPDATE Accounts SET Balance = 25.00 WHERE Id = {testAccount.Id}", cancellationToken);
+        await dbContext.Database.ExecuteSqlAsync($"UPDATE Accounts SET Balance = 25.00 WHERE Id = {testAccount.Id}", cancellationToken);
         var account = await dbContext.Accounts.SingleAsync(candidate => candidate.Id == testAccount.Id, cancellationToken);
 
         var error = Assert.Throws<BusinessRuleException>(account.Close);
@@ -87,7 +85,6 @@ public sealed class AccountTests(BankingApiFactory factory)
         var cancellationToken = TestContext.Current.CancellationToken;
         var account = await DatabaseTestData.CreateAccountAsync(factory, cancellationToken);
 
-        // Two admins load the same active account, each with their own context.
         using var firstScope = factory.Services.CreateScope();
         using var secondScope = factory.Services.CreateScope();
         var firstAdmin = firstScope.ServiceProvider.GetRequiredService<BankingDbContext>();
@@ -95,7 +92,6 @@ public sealed class AccountTests(BankingApiFactory factory)
         var firstView = await firstAdmin.Accounts.SingleAsync(candidate => candidate.Id == account.Id, cancellationToken);
         var secondView = await secondAdmin.Accounts.SingleAsync(candidate => candidate.Id == account.Id, cancellationToken);
 
-        // Both decide from "Active"; the first to save wins.
         firstView.Freeze();
         secondView.Close();
         await firstAdmin.SaveChangesAsync(cancellationToken);

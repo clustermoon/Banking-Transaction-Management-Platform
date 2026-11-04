@@ -9,14 +9,11 @@ public sealed class AccountAdministrationService(BankingDbContext dbContext, Tim
 {
     public const int MaxReasonLength = 200;
 
-    public Task<AuditEntry> FreezeAsync(Guid actorUserId, Guid accountId, string reason, CancellationToken cancellationToken) =>
-        ChangeStatusAsync(actorUserId, accountId, reason, account => account.Freeze(), cancellationToken);
+    public Task<AuditEntry> FreezeAsync(Guid actorUserId, Guid accountId, string reason, CancellationToken cancellationToken) => ChangeStatusAsync(actorUserId, accountId, reason, account => account.Freeze(), cancellationToken);
 
-    public Task<AuditEntry> UnfreezeAsync(Guid actorUserId, Guid accountId, string reason, CancellationToken cancellationToken) =>
-        ChangeStatusAsync(actorUserId, accountId, reason, account => account.Unfreeze(), cancellationToken);
+    public Task<AuditEntry> UnfreezeAsync(Guid actorUserId, Guid accountId, string reason, CancellationToken cancellationToken) => ChangeStatusAsync(actorUserId, accountId, reason, account => account.Unfreeze(), cancellationToken);
 
-    public Task<AuditEntry> CloseAsync(Guid actorUserId, Guid accountId, string reason, CancellationToken cancellationToken) =>
-        ChangeStatusAsync(actorUserId, accountId, reason, account => account.Close(), cancellationToken);
+    public Task<AuditEntry> CloseAsync(Guid actorUserId, Guid accountId, string reason, CancellationToken cancellationToken) => ChangeStatusAsync(actorUserId, accountId, reason, account => account.Close(), cancellationToken);
 
     private async Task<AuditEntry> ChangeStatusAsync(Guid actorUserId, Guid accountId, string reason, Action<Account> change, CancellationToken cancellationToken)
     {

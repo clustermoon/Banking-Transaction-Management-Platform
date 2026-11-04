@@ -1,7 +1,7 @@
 namespace BankingClient.Api.Contracts;
 
 /// <summary>
-/// Data structure for a Login Response matching the same schema from the API (back-end).
+/// Contract for the response received after a successful login operation, including the access token and its expiration time. This record is used to encapsulate the necessary information returned by the banking API upon user authentication.
 /// </summary>
 /// <param name="AccessToken"></param>
 /// <param name="ExpiresAt"></param>

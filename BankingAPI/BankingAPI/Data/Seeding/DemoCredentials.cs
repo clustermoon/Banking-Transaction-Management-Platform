@@ -16,13 +16,10 @@ public static class DemoCredentials
 
     public static readonly IReadOnlyList<DemoUser> Customers =
     [
-        // Everyday customer: accounts, deposits, and transfers.
         new(AliceEmail, "Alice Morgan"),
 
-        // Isolation check: Ben must never be able to see Alice's accounts.
         new(BenEmail, "Ben Carter"),
 
-        // Edge cases: a low balance, a frozen account, and a closed account.
         new(CaraEmail, "Cara Lopez"),
     ];
 }

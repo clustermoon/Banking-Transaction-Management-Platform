@@ -8,9 +8,6 @@ using BankingAPI.Features.Auth;
 
 namespace BankingAPI.Tests.Infrastructure;
 
-/// <summary>
-/// Accounts API calls for tests, using the API's JSON conventions (enums as names).
-/// </summary>
 internal static class AccountsApiClientExtensions
 {
     public static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web) { Converters = { new JsonStringEnumConverter() } };
@@ -30,7 +27,6 @@ internal static class AccountsApiClientExtensions
         return (await response.Content.ReadFromJsonAsync<AccountResponse>(JsonOptions, cancellationToken))!;
     }
 
-    /// <param name="operation">"deposits" or "withdrawals".</param>
     public static async Task<HttpResponseMessage> MoveMoneyAsync(
         this HttpClient client,
         Guid accountId,

@@ -3,10 +3,6 @@ using Microsoft.OpenApi;
 
 namespace BankingAPI.Infrastructure.OpenApi;
 
-/// <summary>
-/// Declares the JWT bearer scheme in the OpenAPI document so the API reference can send
-/// an access token with requests.
-/// </summary>
 internal sealed class BearerSecuritySchemeTransformer : IOpenApiDocumentTransformer
 {
     private const string SchemeName = "Bearer";

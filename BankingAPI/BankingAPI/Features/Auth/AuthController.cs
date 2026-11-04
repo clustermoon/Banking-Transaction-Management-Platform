@@ -6,9 +6,6 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace BankingAPI.Features.Auth;
 
-/// <summary>
-/// Provides endpoints for customer registration, authentication, and logout.
-/// </summary>
 [ApiController]
 [Route("api/auth")]
 public sealed class AuthController(
@@ -24,21 +21,15 @@ public sealed class AuthController(
     [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> Register(RegisterRequest request, CancellationToken cancellationToken)
     {
-        // Delegate account creation to the registrar so Identity-specific
-        // registration behavior remains outside the controller.
         var registration = await customerRegistrar.RegisterAsync(
             request.Email, request.Password, request.DisplayName, cancellationToken);
 
         if (registration.User is not { } user)
         {
-            // Convert Identity validation and uniqueness failures into the
-            // standard ASP.NET Core validation problem response.
             AddIdentityErrors(registration.Outcome);
             return ValidationProblem(ModelState);
         }
 
-        // Do not return credentials or security-sensitive Identity details
-        // as part of the registration response.
         return StatusCode(StatusCodes.Status201Created, new RegisterResponse(user.Id, request.Email, user.DisplayName));
     }
     #endregion
@@ -50,7 +41,6 @@ public sealed class AuthController(
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> Login(LoginRequest request)
     {
-        // Look up the account by email before checking the supplied password.
         var user = await userManager.FindByEmailAsync(request.Email);
         if (user is null)
         {
@@ -60,7 +50,6 @@ public sealed class AuthController(
         var result = await signInManager.CheckPasswordSignInAsync(user, request.Password, lockoutOnFailure: true);
         if (result.IsLockedOut)
         {
-            // Account lockout protects against repeated password-guessing attempts.
             return Problem(
                 title: "Account locked",
                 detail: "Too many failed sign-in attempts. Try again in 15 minutes.",
@@ -84,16 +73,12 @@ public sealed class AuthController(
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> Logout()
     {
-        // The current user must be authenticated before the security stamp
-        // can be rotated to invalidate previously issued tokens.
         var user = await userManager.GetUserAsync(User);
         if (user is null)
         {
             return Unauthorized();
         }
 
-        // Rotating the stamp revokes every token issued before now: TokenRevocationCheck
-        // compares each request's token stamp against this value.
         var rotated = await userManager.UpdateSecurityStampAsync(user);
         if (!rotated.Succeeded)
         {
@@ -107,11 +92,8 @@ public sealed class AuthController(
     #region HELPER METHODS
     private void AddIdentityErrors(IdentityResult result)
     {
-        // Map Identity errors to request fields so clients can display
-        // validation feedback next to the relevant registration input.
         foreach (var error in result.Errors)
         {
-            // UserName mirrors Email, so its duplicate error would only repeat the email one.
             if (error.Code == nameof(IdentityErrorDescriber.DuplicateUserName))
             {
                 continue;
@@ -126,8 +108,6 @@ public sealed class AuthController(
         }
     }
 
-    // One message for an unknown email and a wrong password, so login alone can't
-    // be used to test which emails are registered.
     private ObjectResult InvalidCredentials() => Problem(title: "Invalid email or password.", statusCode: StatusCodes.Status401Unauthorized);
     #endregion
 }

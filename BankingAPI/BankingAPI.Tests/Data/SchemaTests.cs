@@ -47,7 +47,6 @@ public sealed class SchemaTests(BankingApiFactory factory)
         using var scope = factory.Services.CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<BankingDbContext>();
 
-        // Raw SQL stands in for a deposit that lands just before a close is saved.
         await dbContext.Database.ExecuteSqlAsync(
             $"UPDATE Accounts SET Balance = 25.00 WHERE Id = {account.Id}", cancellationToken);
 
@@ -95,7 +94,6 @@ public sealed class SchemaTests(BankingApiFactory factory)
         using var scope = factory.Services.CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<BankingDbContext>();
 
-        // A transfer entry missing its transfer fields, or a deposit carrying them.
         Guid? transferId = includeTransferFields ? Guid.NewGuid() : null;
         Guid? counterpartyId = includeTransferFields ? counterparty.Id : null;
 
@@ -134,7 +132,6 @@ public sealed class SchemaTests(BankingApiFactory factory)
         using var scope = factory.Services.CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<BankingDbContext>();
 
-        // The account's owner stands in for an actor; real entries come from the admin service.
         await dbContext.Database.ExecuteSqlAsync(
             $"""
             INSERT INTO AuditEntries (OccurredAt, ActorUserId, AccountId, FromStatus, ToStatus, Reason)
