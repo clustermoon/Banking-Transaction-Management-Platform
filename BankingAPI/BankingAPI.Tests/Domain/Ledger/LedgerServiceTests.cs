@@ -174,7 +174,7 @@ public sealed class LedgerServiceTests(BankingApiFactory factory)
         var savings = await DatabaseTestData.CreateAccountAsync(factory, checking.OwnerId, cancellationToken);
         await RunAsync(ledger => ledger.DepositAsync(Request(checking, 100m), cancellationToken));
 
-        var result = await RunAsync(ledger => ledger.TransferAsync( Transfer(checking, savings, 25m) with { Note = "Monthly savings" }, cancellationToken));
+        var result = await RunAsync(ledger => ledger.TransferAsync(Transfer(checking, savings, 25m) with { Note = "Monthly savings" }, cancellationToken));
 
         Assert.Equal("Transfer to Test Checking: Monthly savings", result.Entry.Description);
         await AssertLedgerConsistentAsync([checking, savings], cancellationToken);
