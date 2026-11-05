@@ -10,6 +10,9 @@ This repository was intentionally created using very limited to no external help
 
 A full-stack banking and transaction management platform built with ASP.NET Core, Entity Framework Core, and SQL Server. Customers will manage checking and savings accounts, move money, and review their history, while administrators freeze and close accounts under an audit trail.
 
+<img src="images/setup.gif" width=400>
+<img src="images/client.gif" width=400>
+
 ## Highlights
 
 - **One command runs everything:** SQL Server, the API, and the client start with `docker compose up`, in order, gated by health checks.
