@@ -10,16 +10,11 @@ internal static class AuthenticationServiceCollectionExtensions
 {
     public static IServiceCollection AddBankingAuthentication(this IServiceCollection services)
     {
-        services.AddOptions<JwtOptions>()
-        .BindConfiguration(JwtOptions.SectionName)
-        .ValidateDataAnnotations()
-        .ValidateOnStart();
+        services.AddOptions<JwtOptions>().BindConfiguration(JwtOptions.SectionName).ValidateDataAnnotations().ValidateOnStart();
 
         services.AddSingleton<AccessTokenIssuer>();
         services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer();
 
-        // Configured from validated JwtOptions at resolve time, so test and container
-        // configuration overrides apply.
         services.AddOptions<JwtBearerOptions>(JwtBearerDefaults.AuthenticationScheme).Configure<IOptions<JwtOptions>>((bearer, jwtOptions) =>
         {
             var jwt = jwtOptions.Value;
@@ -34,15 +29,14 @@ internal static class AuthenticationServiceCollectionExtensions
                 NameClaimType = JwtRegisteredClaimNames.Sub,
                 RoleClaimType = BankingClaimTypes.Role,
 
-                // One issuer and validator in the same process: no clock drift to absorb,
-                // so a 30-minute token means exactly 30 minutes.
                 ClockSkew = TimeSpan.Zero,
             };
             bearer.Events = new JwtBearerEvents { OnTokenValidated = TokenRevocationCheck.ValidateAsync };
         });
 
-        // Deny by default: an endpoint someone forgets to protect is still protected.
         services.AddAuthorizationBuilder().SetFallbackPolicy(new AuthorizationPolicyBuilder().RequireAuthenticatedUser().Build()).AddPolicy(Policies.Customer, policy => policy.RequireRole(Roles.Customer));
+
+        services.AddAuthorizationBuilder().SetFallbackPolicy(new AuthorizationPolicyBuilder().RequireAuthenticatedUser().Build()).AddPolicy(Policies.Customer, policy => policy.RequireRole(Roles.Customer)).AddPolicy(Policies.Admin, policy => policy.RequireRole(Roles.Admin));
 
         return services;
     }

@@ -9,7 +9,6 @@
         <h1 class="page-title">Something went wrong.</h1>
         <p class="page-subtitle">We couldn't complete that request. Please try again in a moment.</p>
 
-        @* The reference matches the server's log entry for this error, without exposing any details. *@
         @if (Model?.ShowRequestId == true)
         {
             <p class="field-help mb-4">Reference: <code>@Model.RequestId</code></p>

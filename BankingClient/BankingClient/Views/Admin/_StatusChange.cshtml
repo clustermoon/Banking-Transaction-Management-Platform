@@ -1,0 +1,8 @@
+@model AuditEntryResponse
+
+<span class="status-change">
+    <partial name="_AccountStatus" model="Model.FromStatus" />
+    <i class="bi bi-arrow-right" aria-hidden="true"></i>
+    <span class="visually-hidden">to</span>
+    <partial name="_AccountStatus" model="Model.ToStatus" />
+</span>

@@ -1,0 +1,150 @@
+@model ManageAccountViewModel
+@{
+    var account = Model.Account;
+    var availableChanges = Model.AvailableChanges();
+    ViewData["Title"] = $"Manage · {account.Name}";
+
+    string Label(AccountStatus to) => to switch
+    {
+        AccountStatus.Frozen => "Freeze",
+        AccountStatus.Active => "Unfreeze",
+        _ => "Close",
+    };
+
+    string Explain(AccountStatus to) => to switch
+    {
+        AccountStatus.Frozen => "Stop all money movement until the account is reviewed.",
+        AccountStatus.Active => "Restore normal use of the account.",
+        _ => "Close the account permanently. Its history is kept.",
+    };
+}
+
+<div class="page-surface">
+    <div class="container page-content">
+        <nav aria-label="Breadcrumb">
+            <ol class="breadcrumb-trail">
+                <li><a asp-action="Accounts">Accounts</a></li>
+                <li aria-current="page">@account.Name</li>
+            </ol>
+        </nav>
+
+        <h1 class="page-title">@account.Name</h1>
+        <p class="page-subtitle">Owned by @account.OwnerName (@account.OwnerEmail).</p>
+
+        <partial name="_Notice" />
+
+        <section class="panel account-summary mb-4" aria-label="Account summary">
+            <span class="icon-tile"><i class="bi bi-credit-card-2-front" aria-hidden="true"></i></span>
+            <div>
+                <p class="summary-name">@account.Name</p>
+                <p class="summary-label mb-0">@account.Type account</p>
+            </div>
+            <div>
+                <p class="summary-label">Account number</p>
+                <p class="summary-value mb-0">@account.AccountNumber</p>
+            </div>
+            <div>
+                <p class="summary-label">Status</p>
+                <partial name="_AccountStatus" model="account.Status" />
+            </div>
+            <div>
+                <p class="summary-label">Current balance</p>
+                <p class="balance-value mb-0">@account.Balance.ToString("C")</p>
+            </div>
+        </section>
+
+        <div class="row g-4">
+            <div class="col-lg-6">
+                <section class="panel panel-body" aria-labelledby="change-status">
+                    <h2 id="change-status" class="panel-title">Change status</h2>
+
+                    @if (availableChanges.Count == 0)
+                    {
+                        <div class="form-notice" role="status">
+                            <i class="bi bi-info-circle" aria-hidden="true"></i>
+                            <span>Closed accounts are permanent. Their history stays available below.</span>
+                        </div>
+                    }
+                    else
+                    {
+                        <form asp-action="Manage" asp-route-id="@account.Id" method="post" novalidate>
+                            <partial name="_FormAlert" />
+
+                            <fieldset class="form-field">
+                                <legend class="form-label">Change</legend>
+                                <div class="choice-group">
+                                    @foreach (var change in availableChanges)
+                                    {
+                                        <label class="choice-card">
+                                            <input class="form-check-input" type="radio" asp-for="ToStatus" value="@change" />
+                                            <span>
+                                                <span class="choice-title">@Label(change)</span>
+                                                <span class="choice-text">@Explain(change)</span>
+                                            </span>
+                                        </label>
+                                    }
+                                </div>
+                                <span asp-validation-for="ToStatus" class="field-error"></span>
+                            </fieldset>
+
+                            @if (account.Balance != 0m && account.Status != AccountStatus.Closed)
+                            {
+                                <p class="field-help mb-3">Closing becomes available once the balance is zero.</p>
+                            }
+
+                            <div class="form-field">
+                                <label asp-for="Reason" class="form-label"></label>
+                                <textarea asp-for="Reason" class="form-control" rows="3" maxlength="200"
+                                          placeholder="Why is this change being made?" aria-describedby="reason-help"></textarea>
+                                <p id="reason-help" class="field-help">Recorded permanently in the audit log, with your name.</p>
+                                <span asp-validation-for="Reason" class="field-error"></span>
+                            </div>
+
+                            <button type="submit" class="btn btn-primary btn-icon">
+                                Record change <i class="bi bi-arrow-right" aria-hidden="true"></i>
+                            </button>
+                        </form>
+                    }
+                </section>
+            </div>
+
+            <div class="col-lg-6">
+                <section class="panel panel-body" aria-labelledby="audit-history">
+                    <h2 id="audit-history" class="panel-title">Audit history</h2>
+
+                    @if (Model.History.Count == 0)
+                    {
+                        <p class="empty-state">No status changes yet.</p>
+                    }
+                    else
+                    {
+                        <div class="table-scroll">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th scope="col">When</th>
+                                        <th scope="col">Change</th>
+                                        <th scope="col">Reason</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var entry in Model.History)
+                                    {
+                                        <tr>
+                                            <td class="text-nowrap">
+                                                @entry.OccurredAt.UtcDateTime.ToString("MMM d, yyyy")
+                                                <span class="cell-subtext">by @entry.ActorName</span>
+                                            </td>
+                                            <td><partial name="_StatusChange" model="entry" /></td>
+                                            <td>@entry.Reason</td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                </section>
+            </div>
+        </div>
+    </div>
+</div>

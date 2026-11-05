@@ -1,7 +1,7 @@
 namespace BankingClient.Api.Contracts;
 
 /// <summary>
-/// Data structure for a Register Request matching the same schema from the API (back-end).
+/// Contract for registering a new user with the banking API, including the user's email, password, and display name. This record is used to encapsulate the necessary information for creating a new user account through the API.
 /// </summary>
 /// <param name="Email"></param>
 /// <param name="Password"></param>

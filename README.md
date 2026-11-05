@@ -15,30 +15,18 @@ A full-stack banking and transaction management platform built with ASP.NET Core
 - **One command runs everything:** SQL Server, the API, and the client start with `docker compose up`, in order, gated by health checks.
 - **Logout actually logs you out:** access tokens are short-lived JWTs, and every request is checked against the user's current security stamp, so a token stops working the moment its owner signs out.
 - **Secure by default:** every API endpoint requires authentication unless it explicitly opts out, and accounts lock for 15 minutes after 5 failed sign-ins.
-- **One error format:** every failure is an RFC 7807 `application/problem+json` response.
 - **Tested against the real database:** integration tests run against SQL Server in a disposable container, not an in-memory fake.
 - **Gated by CI:** every pull request is built, format-checked, tested, and smoke-tested with the same `docker compose up` described below.
 - **The browser never sees the API token:** the client keeps it inside an encrypted, HttpOnly session cookie and attaches it to API calls server-side, so scripts in the page can't read it.
-- **Accounts can't be overdrawn, even under concurrency.** Every balance change is one conditional SQL update that holds the account's row lock, so simultaneous withdrawals are applied one at a time against the latest balance. A test fires 20 withdrawals at once against an account that can cover 10: exactly 10 succeed.
-- **History can't be rewritten.** The ledger is append-only: database triggers reject every `UPDATE` and `DELETE`, and every balance is fully explained by its ledger entries, verified by an invariant checker.
-**Transfers are all or nothing, and can't deadlock.** Both accounts change in one transaction, locked in a fixed order, so opposing transfers queue instead of deadlocking. A test fires 40 simultaneous transfers in both directions between two accounts: no deadlock, and not a cent created or lost.
-**Customers can't see each other's accounts.** Requesting another customer's account returns `404`, never confirming it exists, and transfers show other customers only as the last four digits of an account number.
+- **Accounts can't be overdrawn.** Every balance change is one conditional SQL update that holds the account's row lock, so simultaneous withdrawals are applied one at a time against the latest balance. 
+- **History can't be rewritten.** The ledger is append-only: database triggers reject every `UPDATE` and `DELETE`, and every balance is fully explained by its ledger entries.
+**Transfers are all or nothing, and can't deadlock.** Both accounts change in one transaction, locked in a fixed order, so opposing transfers queue instead of deadlocking. 
+**Customers can't see each other's accounts.** Requesting another customer's account returns `404`.
+- **Admin power leaves a permanent trail.** Every freeze, unfreeze, and close requires a reason and is recorded in the same transaction as the change.
 
 ## Overview
 
-This project began as a C# banking application I developed during my computer science coursework. The original assignment gave me a foundation, but I wanted to take it further. I decided to rebuild the application under my own direction while reusing what I'd already developed and learned. This gave me the opportunity to make deliberate decisions about the application's structure. With the added freedom I expanded the initial project scope into a **Banking & Transaction Management Platform**. 
-
-## Design Decisions
-
-The reasoning behind the architecture, including what each choice costs, is in [docs/DESIGN_DECISIONS.md](docs/DESIGN_DECISIONS.md). A few highlights:
-
-- **Logout revokes tokens on the server**, at the cost of one user lookup per request.
-- **The browser never sees the API token**: it lives inside the client's encrypted, HttpOnly session cookie.
-- **Every API endpoint requires authentication** unless it explicitly opts out.
-- **Tests run against real SQL Server**, because constraints, transactions, and locking are what correctness depends on.
-
-The document also lists the known limitations, such as no MFA and no rate limiting, and what production would need instead.
-
+This project began as a C# banking application I developed during my computer science coursework. The original coursework gave me a foundation, but I wanted to take it further. I decided to rebuild the application under my own direction while reusing what I'd already developed and learned. This gave me the opportunity to make deliberate decisions about the application's structure. With the added freedom I expanded the initial project scope into a **Banking & Transaction Management Platform**. 
 
 ## Getting Started
 
@@ -52,13 +40,13 @@ You can get the required prerequisites from their respective download pages:
 Clone the Project to a source folder onto your local machine.
 Ensure Docker Desktop is running.
 
-Then, to start call the following from the respository root:
+Then to start, call the following from the respository root:
 
 ```bash
 docker compose up --build -d
 ```
 
-The first start takes a minute while SQL Server initializes. Then:
+The first start takes a minute while SQL Server initializes. Then the backend and front end can be accessed from:
 
 | Service | URL |
 | --- | --- |
@@ -74,13 +62,16 @@ Startup is ordered by health checks: the API starts once SQL Server accepts quer
 
 The demo seeds three customers with about three months of history, including transfers between Alice's accounts and from Alice to Ben.
 
-| Customer | Passwords |Accounts | Use it to see |
-| --- | --- | --- | --- |
-| `alice@avenor.test` | Avenor-Demo-2026 | Everyday Checking `7301004821`, Holiday Savings `7301007196` | Everyday banking: paychecks, bills, and savings |
-| `ben@avenor.test` | Avenor-Demo-2026 |  Everyday Checking `7301002457` | Customer isolation: Ben can never see Alice's accounts |
-| `cara@avenor.test` | Avenor-Demo-2026 |  Everyday Checking `7301003390`, Rainy Day Savings `7301005512`, Old Checking `7301006604` | Edge cases: a $23.40 balance, a frozen account, and a closed one |
+| Customer | Passwords | Accounts |
+| --- | --- | --- |
+| `alice@avenor.test` | Avenor-Demo-2026 | Everyday Checking `7301004821`, Holiday Savings `7301007196` |
+| `ben@avenor.test` | Avenor-Demo-2026 |  Everyday Checking `7301002457` |
+| `cara@avenor.test` | Avenor-Demo-2026 |  Everyday Checking `7301003390`, Rainy Day Savings `7301005512`, Old Checking `7301006604` | 
+
+A staff account, `admin@avenor.test` with the password `Avenor-Admin-2026`, oversees every account. It has its own password, so the customer password never grants admin access. The audit log already explains Cara's frozen and closed accounts: who changed them, when, and why.
 
 **Why the passwords are public:** they exist only to make the demo explorable. Seeding is off by default, runs only in the Docker demo and local development, and the API refuses to start if it's enabled in Production. Accounts lock for 15 minutes after five failed sign-ins, so if one demo account locks, use another or reset with `docker compose down -v`.
+
 
 ---
 
@@ -99,11 +90,11 @@ The API ships with an interactive reference, built with [Scalar](https://scalar.
 - **Trigger a lockout.** Sign in with a wrong password five times. The sixth attempt is refused, even with the correct password, for 15 minutes.
 - **Call a protected endpoint anonymously.** Remove the token and call `GET /api/profile`. The API returns `401` without the endpoint declaring any authorization attribute, because authentication is required by default.
 - **Send invalid input.** Register with `not-an-email` or a short password. The response is a `400` problem document listing the error for each field.
-- **Transfer between customers.** Call `POST /api/accounts/{id}/transfers` on one of Alice's accounts with an `Idempotency-Key` header and a body of `{ "toAccountNumber": "7301002457", "amount": 10, "note": "Lunch" }`. The response is Alice's side of the transfer, "Transfer to •••• 2457: Lunch." The same idempotency rules apply as for deposits.
+
 
 ### Using the Client
 
-Open http://localhost:5002, choose **Log in**, and sign in with any demo account. You'll land on your profile, which the client loads from the API on every visit.
+Open http://localhost:5002, choose **Log in**, and sign in with any demo account. You'll land on your profile, which the client loads from the API on every visit. 
 
 #### Things to try
 
@@ -111,8 +102,14 @@ Open http://localhost:5002, choose **Log in**, and sign in with any demo account
 - **Register.** Create your own account. Validation errors from the API appear beside the field they belong to.
 - **Transfer money.** From one of Alice's accounts, choose **Transfer**. Move money to her other account, or switch to **To another customer** and send some to Ben at `7301002457`. Both accounts change together, or neither does.
 - **See a transfer from both sides.** Alice's history names her own accounts ("Transfer to Holiday Savings"), but Ben's shows hers only as "Transfer from •••• 4821." Neither customer ever sees the other's account names. Sending to Cara's frozen savings (`7301005512`) gets the same message as a number that doesn't exist, so nothing is revealed about it.
+- **Read the audit trail.** Sign in as the admin and open **Audit log**. Every status change is there with the reason it was made and who made it, including Cara's checking being frozen for review and then restored.
+- **Freeze an account, then feel it.** As the admin, manage Ben's Everyday Checking and freeze it with a reason. Sign in as Ben and try to deposit: it's refused. Unfreeze it afterward, and both changes appear in the log.
+- **Cross the line between roles.** As Ben, visit http://localhost:5002/admin/accounts. As the admin, visit http://localhost:5002/dashboard. Each gets "You don't have access to that page."
+
+
 
 ---
+
 
 ### Configuration
 
@@ -125,7 +122,6 @@ The demo runs with documented, development-only secrets defined in `docker-compo
 
 SQL Server keeps the password from the volume's first start, so if you change `MSSQL_SA_PASSWORD`, run `docker compose down -v` first.
 Outside the Docker demo and local development, the API refuses to start without a signing key, so a misconfigured deployment can't run with a missing or weak key.
-The client's session cookies are encrypted with keys that live inside its container, so recreating the client container (for example, `docker compose up --build`) signs everyone out. A production deployment would persist and protect those keys.
 
 #### Resetting
 
@@ -135,11 +131,6 @@ docker compose down -v
 
 This removes the database volume, so the next `up` starts from an empty database.
 
-#### Closing the API, Client & SqlServer
-```
-docker compose down
-```
-This tells docker to close down the running instances of the API, Client and Sql Server.
 
 ### Port conflicts
 

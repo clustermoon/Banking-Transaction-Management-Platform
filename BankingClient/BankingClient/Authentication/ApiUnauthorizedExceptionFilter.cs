@@ -8,9 +8,7 @@ using Microsoft.AspNetCore.Mvc.Filters;
 namespace BankingClient.Authentication;
 
 /// <summary>
-/// When the API refuses the session's token, the cookie session is stale: sign it out and
-/// send the user to log in again, instead of showing an error page. Registered globally,
-/// so every page that calls the API gets this behavior without handling it itself.
+/// An exception filter that handles <see cref="ApiUnauthorizedException"/> thrown by the banking API client. When such an exception occurs, the filter signs the user out of their current session and redirects them to the login page, optionally preserving the original request URL for a return after re-authentication. This ensures that users are prompted to log in again if their session has expired or if they are unauthorized to access a resource.
 /// </summary>
 public sealed class ApiUnauthorizedExceptionFilter : IAsyncExceptionFilter
 {
@@ -24,8 +22,6 @@ public sealed class ApiUnauthorizedExceptionFilter : IAsyncExceptionFilter
         var request = context.HttpContext.Request;
         await context.HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
 
-        // Only a GET is safe to repeat after signing back in; a form post (like a transfer)
-        // must never replay itself automatically.
         var returnUrl = HttpMethods.IsGet(request.Method) ? $"{request.PathBase}{request.Path}{request.QueryString}" : null;
 
         context.Result = new RedirectToActionResult("Login", "Account", new { returnUrl, sessionExpired = true });

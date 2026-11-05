@@ -1,4 +1,5 @@
 using BankingAPI.Domain.Accounts;
+using BankingAPI.Domain.Audit;
 using BankingAPI.Domain.Ledger;
 using BankingAPI.Identity;
 
@@ -8,9 +9,6 @@ using Microsoft.EntityFrameworkCore;
 
 namespace BankingAPI.Data;
 
-/// <summary>
-/// The application's unit of work: Identity tables plus the banking schema.
-/// </summary>
 public sealed class BankingDbContext(DbContextOptions<BankingDbContext> options) : IdentityDbContext<ApplicationUser, IdentityRole<Guid>, Guid>(options)
 {
     public DbSet<Account> Accounts => Set<Account>();
@@ -18,6 +16,8 @@ public sealed class BankingDbContext(DbContextOptions<BankingDbContext> options)
     public DbSet<LedgerEntry> LedgerEntries => Set<LedgerEntry>();
 
     public DbSet<IdempotencyRecord> IdempotencyRecords => Set<IdempotencyRecord>();
+
+    public DbSet<AuditEntry> AuditEntries => Set<AuditEntry>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {

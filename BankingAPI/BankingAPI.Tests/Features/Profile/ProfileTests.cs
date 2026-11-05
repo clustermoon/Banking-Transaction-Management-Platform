@@ -51,8 +51,6 @@ public sealed class ProfileTests(BankingApiFactory factory)
         using var client = factory.CreateClient();
         var email = await client.RegisterUserAsync(cancellationToken);
 
-        // A second in-memory host whose clock is an hour behind issues a token
-        // that expired 30 minutes ago; the normal host must refuse it.
         var anHourAgo = new FakeTimeProvider(DateTimeOffset.UtcNow.AddHours(-1));
         await using var pastHost = factory.WithWebHostBuilder(builder => builder.ConfigureTestServices(services => services.AddSingleton<TimeProvider>(anHourAgo)));
         using var pastClient = pastHost.CreateClient();

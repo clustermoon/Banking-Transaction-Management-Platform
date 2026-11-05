@@ -26,8 +26,6 @@
                     <form asp-action="@verb" asp-route-id="@Model.Account.Id" method="post" novalidate>
                         <partial name="_FormAlert" />
 
-                        @* One key per page load: a double-click or resubmission sends this same key,
-                           and the API moves the money at most once. *@
                         <input asp-for="IdempotencyKey" type="hidden" />
 
                         <div class="form-field">

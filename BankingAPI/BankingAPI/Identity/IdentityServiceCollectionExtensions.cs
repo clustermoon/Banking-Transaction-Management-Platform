@@ -5,16 +5,10 @@ using Microsoft.IdentityModel.JsonWebTokens;
 
 namespace BankingAPI.Identity;
 
-/// <summary>
-/// Configures ASP.NET Core Identity, including user management, password policies,
-/// account lockout, roles, and database persistence.
-/// Keeps Identity configuration separate from application startup.
-/// </summary>
 internal static class IdentityServiceCollectionExtensions
 {
     public static IServiceCollection AddBankingIdentity(this IServiceCollection services)
     {
-        // Identity
         services.AddIdentityCore<ApplicationUser>(options =>
         {
             options.User.RequireUniqueEmail = true;
@@ -38,7 +32,6 @@ internal static class IdentityServiceCollectionExtensions
         .AddEntityFrameworkStores<BankingDbContext>()
         .AddSignInManager();
 
-        // Registrar
         services.AddScoped<CustomerRegistrar>();
 
         return services;

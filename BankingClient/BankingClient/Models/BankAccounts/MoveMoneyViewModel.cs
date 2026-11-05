@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 namespace BankingClient.Models.BankAccounts;
 
 /// <summary>
-/// A deposit or withdrawal form. Account and Kind come from the server, never from the posted form.
+/// Provides data for the move money view, including the source account, transfer type, and transfer details.
 /// </summary>
 public sealed class MoveMoneyViewModel
 {

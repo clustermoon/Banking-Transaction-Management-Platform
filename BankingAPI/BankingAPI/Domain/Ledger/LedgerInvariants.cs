@@ -6,13 +6,6 @@ using Microsoft.EntityFrameworkCore;
 
 namespace BankingAPI.Domain.Ledger;
 
-/// <summary>
-/// Verifies that balances and the ledger agree. For each account checked: every entry's
-/// BalanceAfter equals the running total of its history up to that entry, and the account's
-/// balance equals the total of all its entries. For every transfer those accounts take part in:
-/// exactly one outgoing and one incoming entry, for the same amount, each naming the other's
-/// account. Non-negative balances and entry shapes are enforced by the database itself.
-/// </summary>
 public static class LedgerInvariants
 {
     public static async Task<IReadOnlyList<string>> FindViolationsAsync(BankingDbContext dbContext, IReadOnlyCollection<Guid> accountIds, CancellationToken cancellationToken)
@@ -46,8 +39,6 @@ public static class LedgerInvariants
         return violations;
     }
 
-    // A transfer's other half may belong to an account outside the checked set, so both
-    // halves of every transfer touching these accounts are loaded together.
     private static async Task<IEnumerable<string>> FindUnbalancedTransfersAsync(
         BankingDbContext dbContext, List<LedgerEntry> entries, CancellationToken cancellationToken)
     {

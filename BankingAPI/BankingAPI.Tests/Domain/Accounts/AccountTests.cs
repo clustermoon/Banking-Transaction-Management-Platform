@@ -70,13 +70,33 @@ public sealed class AccountTests(BankingApiFactory factory)
         using var scope = factory.Services.CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<BankingDbContext>();
 
-        // A balance can only come from the database, which is how real accounts are loaded.
-        await dbContext.Database.ExecuteSqlAsync(
-            $"UPDATE Accounts SET Balance = 25.00 WHERE Id = {testAccount.Id}", cancellationToken);
+        await dbContext.Database.ExecuteSqlAsync($"UPDATE Accounts SET Balance = 25.00 WHERE Id = {testAccount.Id}", cancellationToken);
         var account = await dbContext.Accounts.SingleAsync(candidate => candidate.Id == testAccount.Id, cancellationToken);
 
         var error = Assert.Throws<BusinessRuleException>(account.Close);
         Assert.Equal("An account can only be closed once its balance is zero.", error.Message);
+    }
+    #endregion
+
+    #region FACT? - Concurrent Status Changes Cannot Both Succeed
+    [Fact]
+    public async Task ConcurrentStatusChangesCannotBothSucceed()
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var account = await DatabaseTestData.CreateAccountAsync(factory, cancellationToken);
+
+        using var firstScope = factory.Services.CreateScope();
+        using var secondScope = factory.Services.CreateScope();
+        var firstAdmin = firstScope.ServiceProvider.GetRequiredService<BankingDbContext>();
+        var secondAdmin = secondScope.ServiceProvider.GetRequiredService<BankingDbContext>();
+        var firstView = await firstAdmin.Accounts.SingleAsync(candidate => candidate.Id == account.Id, cancellationToken);
+        var secondView = await secondAdmin.Accounts.SingleAsync(candidate => candidate.Id == account.Id, cancellationToken);
+
+        firstView.Freeze();
+        secondView.Close();
+        await firstAdmin.SaveChangesAsync(cancellationToken);
+
+        await Assert.ThrowsAsync<DbUpdateConcurrencyException>(() => secondAdmin.SaveChangesAsync(cancellationToken));
     }
     #endregion
 }

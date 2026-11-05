@@ -51,6 +51,7 @@ namespace BankingAPI.Data.Migrations
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("Status")
+                        .IsConcurrencyToken()
                         .IsRequired()
                         .HasMaxLength(20)
                         .HasColumnType("nvarchar(20)");
@@ -73,6 +74,54 @@ namespace BankingAPI.Data.Migrations
 
                             t.HasCheckConstraint("CK_Accounts_Closed_ZeroBalance", "[Status] <> 'Closed' OR [Balance] = 0");
                         });
+                });
+
+            modelBuilder.Entity("BankingAPI.Domain.Audit.AuditEntry", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<Guid>("AccountId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("ActorUserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("FromStatus")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<DateTimeOffset>("OccurredAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("Reason")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("ToStatus")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ActorUserId");
+
+                    b.HasIndex("AccountId", "Id");
+
+                    b.ToTable("AuditEntries", t =>
+                        {
+                            t.HasTrigger("TR_AuditEntries_AppendOnly");
+
+                            t.HasCheckConstraint("CK_AuditEntries_StatusChanges", "[FromStatus] <> [ToStatus]");
+                        });
+
+                    b.HasAnnotation("SqlServer:UseSqlOutputClause", false);
                 });
 
             modelBuilder.Entity("BankingAPI.Domain.Ledger.IdempotencyRecord", b =>
@@ -268,6 +317,13 @@ namespace BankingAPI.Data.Migrations
                             ConcurrencyStamp = "b8e5f0a2-1c4d-4e6f-8a9b-0c1d2e3f4a5b",
                             Name = "Customer",
                             NormalizedName = "CUSTOMER"
+                        },
+                        new
+                        {
+                            Id = new Guid("9a4d7e2b-6c1f-4b83-a5d0-2e8f1c7b4a39"),
+                            ConcurrencyStamp = "d3f7a1c9-5e2b-4d68-b0a4-7c9e1f3b5d27",
+                            Name = "Admin",
+                            NormalizedName = "ADMIN"
                         });
                 });
 
@@ -379,6 +435,21 @@ namespace BankingAPI.Data.Migrations
                     b.HasOne("BankingAPI.Identity.ApplicationUser", null)
                         .WithMany()
                         .HasForeignKey("OwnerId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("BankingAPI.Domain.Audit.AuditEntry", b =>
+                {
+                    b.HasOne("BankingAPI.Domain.Accounts.Account", null)
+                        .WithMany()
+                        .HasForeignKey("AccountId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("BankingAPI.Identity.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("ActorUserId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
                 });

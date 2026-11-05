@@ -7,7 +7,16 @@
     <div class="container page-content">
         <nav aria-label="Breadcrumb">
             <ol class="breadcrumb-trail">
-                <li><a asp-controller="Dashboard" asp-action="Index">Dashboard</a></li>
+                <li>
+                    @if (User.IsInRole(ClientRoles.Admin))
+                    {
+                        <a asp-controller="Admin" asp-action="Accounts">Accounts</a>
+                    }
+                    else
+                    {
+                        <a asp-controller="Dashboard" asp-action="Index">Dashboard</a>
+                    }
+                </li>
                 <li aria-current="page">My profile</li>
             </ol>
         </nav>

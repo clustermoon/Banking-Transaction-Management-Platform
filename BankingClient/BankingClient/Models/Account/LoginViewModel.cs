@@ -2,6 +2,9 @@ using System.ComponentModel.DataAnnotations;
 
 namespace BankingClient.Models.Account;
 
+/// <summary>
+/// Provides data for the login view, including the user's email, password, and optional return URL.
+/// </summary>
 public sealed class LoginViewModel
 {
     [Required]

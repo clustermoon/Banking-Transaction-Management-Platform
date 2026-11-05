@@ -2,12 +2,6 @@ using System.Security.Cryptography;
 
 namespace BankingAPI.Domain.Accounts;
 
-/// <summary>
-/// Random 10-digit account numbers. Random rather than sequential, so a number reveals
-/// nothing about how many accounts exist and its neighbors can't be guessed. The unique
-/// index guarantees no two accounts share one; at this scale a collision is negligible,
-/// and one would fail the request rather than create a duplicate.
-/// </summary>
 public static class AccountNumberGenerator
 {
     public const int Length = 10;

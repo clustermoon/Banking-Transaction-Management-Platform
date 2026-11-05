@@ -10,17 +10,8 @@ using Microsoft.EntityFrameworkCore;
 
 namespace BankingAPI.Domain.Ledger;
 
-/// <summary>
-/// The only code that moves money. Every balance change is a conditional UPDATE that takes the
-/// account's row lock; every operation records its ledger entries from those updates' output and
-/// is idempotent: a retried request returns its original result instead of moving money again.
-/// </summary>
 public sealed class LedgerService(BankingDbContext dbContext, TimeProvider timeProvider)
 {
-    /// <summary>
-    /// The note joins a generated description ("Transfer from" plus a 50-character account name),
-    /// and this limit keeps the whole within the 100-character description column.
-    /// </summary>
     public const int MaxTransferNoteLength = 30;
 
     public Task<LedgerOperationResult> DepositAsync(LedgerRequest request, CancellationToken cancellationToken)
@@ -82,8 +73,6 @@ public sealed class LedgerService(BankingDbContext dbContext, TimeProvider timeP
 
             var destination = await dbContext.Accounts.AsNoTracking().SingleOrDefaultAsync(account => account.AccountNumber == request.ToAccountNumber, cancellationToken);
 
-            // One message whether the number is unknown, frozen, or closed, so it reveals
-            // nothing about an account the sender doesn't own.
             if (destination is null || destination.Status != AccountStatus.Active)
             {
                 throw new BusinessRuleException("We couldn't find an active account with that number.");
@@ -96,8 +85,6 @@ public sealed class LedgerService(BankingDbContext dbContext, TimeProvider timeP
 
             var (sourceBalance, destinationBalance) = await DebitAndCreditInLockOrderAsync(source.Id, destination.Id, request.UserId, request.Amount, cancellationToken);
 
-            // Your own accounts are named; another customer's appear only as a masked number,
-            // in both directions, so neither customer sees the other's account names.
             var isBetweenOwnAccounts = destination.OwnerId == request.UserId;
             var destinationLabel = isBetweenOwnAccounts ? destination.Name : destination.MaskedAccountNumber;
             var sourceLabel = isBetweenOwnAccounts ? source.Name : source.MaskedAccountNumber;
@@ -110,14 +97,8 @@ public sealed class LedgerService(BankingDbContext dbContext, TimeProvider timeP
         }, cancellationToken);
     }
 
-    /// <summary>
-    /// The shared shape of every money operation. <paramref name="apply"/> changes balances and adds
-    /// the operation's entries inside the transaction, returning the entry the idempotency record
-    /// points to. Any exception it throws rolls back everything it did.
-    /// </summary>
     private async Task<LedgerOperationResult> RunIdempotentAsync(Guid userId, Guid idempotencyKey, string requestHash, Func<DateTimeOffset, Task<LedgerEntry>> apply, CancellationToken cancellationToken)
     {
-        // A retry of a request that already completed returns the original result.
         var existing = await FindRecordAsync(userId, idempotencyKey, cancellationToken);
         if (existing is not null)
         {
@@ -137,8 +118,6 @@ public sealed class LedgerService(BankingDbContext dbContext, TimeProvider timeP
         }
         catch (DbUpdateException exception) when (IsDuplicateKey(exception))
         {
-            // An identical request committed first. Undo this attempt's balance changes and
-            // entries, and return the winner's result, so money moves exactly once.
             await transaction.RollbackAsync(cancellationToken);
             dbContext.ChangeTracker.Clear();
             var winner = await FindRecordAsync(userId, idempotencyKey, cancellationToken);
@@ -149,11 +128,6 @@ public sealed class LedgerService(BankingDbContext dbContext, TimeProvider timeP
         return new LedgerOperationResult(recorded, Replayed: false);
     }
 
-    /// <summary>
-    /// Every transfer locks its two accounts in the same order (by Id), whichever way the money
-    /// moves. Two concurrent transfers between the same accounts then queue on the first lock
-    /// instead of each holding one lock while waiting for the other, which is a deadlock.
-    /// </summary>
     private async Task<(decimal SourceBalance, decimal DestinationBalance)> DebitAndCreditInLockOrderAsync(Guid sourceId, Guid destinationId, Guid userId, decimal amount, CancellationToken cancellationToken)
     {
         if (sourceId.CompareTo(destinationId) < 0)
@@ -172,7 +146,6 @@ public sealed class LedgerService(BankingDbContext dbContext, TimeProvider timeP
 
     private async Task<decimal> DebitOrExplainAsync(Guid accountId, Guid userId, decimal amount, CancellationToken cancellationToken) => await DebitOwnedAccountAsync(accountId, userId, amount, cancellationToken) ?? throw await ExplainRefusalAsync(accountId, userId, "Insufficient funds for this transfer.", cancellationToken);
 
-    // The destination was checked before locking; this catches it being frozen or closed since.
     private async Task<decimal> CreditActiveAccountOrRefuseAsync(
         Guid accountId, decimal amount, CancellationToken cancellationToken) => await UpdateBalanceAsync(
         $"""
@@ -191,11 +164,6 @@ public sealed class LedgerService(BankingDbContext dbContext, TimeProvider timeP
         WHERE Id = {accountId} AND OwnerId = {userId} AND Status = {Active} AND Balance >= {amount}
         """, cancellationToken);
 
-    /// <summary>
-    /// Runs one conditional balance update. Its WHERE clause carries every rule and SQL Server
-    /// evaluates it under the row lock, so the check and the change are one indivisible step.
-    /// Returns the new balance, or null if the rules refused the change.
-    /// </summary>
     private async Task<decimal?> UpdateBalanceAsync(FormattableString update, CancellationToken cancellationToken)
     {
         var balances = await dbContext.Database.SqlQuery<decimal>(update).ToListAsync(cancellationToken);
@@ -204,8 +172,6 @@ public sealed class LedgerService(BankingDbContext dbContext, TimeProvider timeP
 
     private static string Active => nameof(AccountStatus.Active);
 
-    // An update changes nothing for several reasons; work out which, for an accurate message.
-    // A missing account and someone else's account both read as "not found".
     private async Task<Exception> ExplainRefusalAsync(Guid accountId, Guid userId, string? insufficientFundsMessage, CancellationToken cancellationToken)
     {
         var status = await dbContext.Accounts.AsNoTracking().Where(account => account.Id == accountId && account.OwnerId == userId).Select(account => (AccountStatus?)account.Status).SingleOrDefaultAsync(cancellationToken);
@@ -241,7 +207,6 @@ public sealed class LedgerService(BankingDbContext dbContext, TimeProvider timeP
 
     private static string Describe(string direction, string accountLabel, string? note) => note is null ? $"{direction} {accountLabel}" : $"{direction} {accountLabel}: {note}";
 
-    // decimal(18,2) would silently round extra decimal places, changing the amount.
     private static void EnsureValidAmount(decimal amount)
     {
         if (amount <= 0m || decimal.Round(amount, 2) != amount)
@@ -250,12 +215,9 @@ public sealed class LedgerService(BankingDbContext dbContext, TimeProvider timeP
         }
     }
 
-    // Unchanged from Phase 4, so idempotency records already stored still match their requests.
     private static string HashRequest(LedgerEntryType type, LedgerRequest request) => HashRequest(string.Create(CultureInfo.InvariantCulture, $"{type}|{request.AccountId}|{request.Amount:0.00}|{request.Description}"));
 
-    // A fixed text form of the request, so a retry hashes identically and any change doesn't.
     private static string HashRequest(string canonical) => Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(canonical)));
 
-    // 2627 is a primary key or unique constraint violation; 2601 is a unique index violation.
     private static bool IsDuplicateKey(DbUpdateException exception) => exception.InnerException is SqlException { Number: 2627 or 2601 };
 }

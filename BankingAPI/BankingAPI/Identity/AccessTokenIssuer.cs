@@ -4,10 +4,6 @@ using Microsoft.IdentityModel.Tokens;
 
 namespace BankingAPI.Identity;
 
-/// <summary>
-/// Issues HS256 access tokens. Times come from <see cref="TimeProvider"/> so tests can issue
-/// tokens in the past and prove expiry is enforced.
-/// </summary>
 public sealed class AccessTokenIssuer(IOptions<JwtOptions> options, TimeProvider timeProvider)
 {
     private static readonly JsonWebTokenHandler TokenHandler = new();

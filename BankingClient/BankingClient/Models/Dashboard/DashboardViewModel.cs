@@ -2,11 +2,12 @@ using BankingClient.Api.Contracts;
 
 namespace BankingClient.Models.Dashboard;
 
+/// <summary>
+/// Provides data for the dashboard view, including a list of accounts and summary statistics.
+/// </summary>
+/// <param name="Accounts"></param>
 public sealed record DashboardViewModel(IReadOnlyList<AccountResponse> Accounts)
 {
-    /// <summary>
-    /// Money across accounts that aren't closed; closed accounts always hold zero.
-    /// </summary>
     public decimal TotalBalance => Accounts.Where(account => account.Status != AccountStatus.Closed).Sum(account => account.Balance);
 
     public int OpenAccounts => Accounts.Count(account => account.Status != AccountStatus.Closed);

@@ -6,26 +6,28 @@ using Testcontainers.MsSql;
 namespace BankingAPI.Tests.Infrastructure;
 
 /// <summary>
-/// Hosts the API in memory against a disposable SQL Server container, so tests exercise
-/// the real database engine (constraints, triggers, locking) rather than a fake.
-/// One instance is shared by the whole test assembly.
+/// This class provides a factory for creating a test instance of the Banking API application, including configuration for the test database and other settings.
 /// </summary>
 public sealed class BankingApiFactory : WebApplicationFactory<Program>, IAsyncLifetime
 {
+    /// <summary>
+    /// SQL Server container used for testing purposes, built using the Testcontainers library and configured with the latest SQL Server 2022 image.
+    /// </summary>
     private readonly MsSqlContainer _sqlServer = new MsSqlBuilder("mcr.microsoft.com/mssql/server:2022-latest").Build();
 
+    /// <summary>
+    /// Initializes the test instance of the Banking API application, including starting the SQL Server container and configuring the application settings for testing purposes.
+    /// </summary>
+    /// <returns></returns>
     public async ValueTask InitializeAsync()
     {
         await _sqlServer.StartAsync();
 
-        // Build the host now, so its startup migration runs exactly once. Left lazy, parallel
-        // test classes race to create the host and both try to create the database.
         _ = Server;
     }
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
-        // The container's default connection string targets master; point it at an app database.
         var connectionString = new SqlConnectionStringBuilder(_sqlServer.GetConnectionString()) { InitialCatalog = "Banking", }.ConnectionString;
 
         builder.UseEnvironment("Testing");

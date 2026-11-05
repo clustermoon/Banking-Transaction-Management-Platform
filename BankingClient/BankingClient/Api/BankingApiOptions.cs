@@ -3,8 +3,7 @@ using System.ComponentModel.DataAnnotations;
 namespace BankingClient.Api;
 
 /// <summary>
-/// Where the API lives. Validated at startup, so a missing address fails immediately rather
-/// than on the first sign-in.
+/// A class that represents the configuration options for the banking API client, including the base URL of the API. This class is used to bind configuration settings from appsettings.json or other configuration sources, allowing the application to easily configure and access the banking API.
 /// </summary>
 public sealed class BankingApiOptions
 {

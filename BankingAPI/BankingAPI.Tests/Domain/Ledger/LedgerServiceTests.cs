@@ -51,7 +51,6 @@ public sealed class LedgerServiceTests(BankingApiFactory factory)
         var account = await DatabaseTestData.CreateAccountAsync(factory, cancellationToken);
         await RunAsync(ledger => ledger.DepositAsync(Request(account, 100m), cancellationToken));
 
-        // Twenty $10 withdrawals against $100, all at once: exactly ten can succeed.
         var outcomes = await Task.WhenAll(Enumerable.Range(0, 20).Select(_ => TryWithdrawAsync(account, 10m, cancellationToken)));
 
         Assert.Equal(10, outcomes.Count(succeeded => succeeded));
@@ -175,8 +174,7 @@ public sealed class LedgerServiceTests(BankingApiFactory factory)
         var savings = await DatabaseTestData.CreateAccountAsync(factory, checking.OwnerId, cancellationToken);
         await RunAsync(ledger => ledger.DepositAsync(Request(checking, 100m), cancellationToken));
 
-        var result = await RunAsync(ledger => ledger.TransferAsync(
-            Transfer(checking, savings, 25m) with { Note = "Monthly savings" }, cancellationToken));
+        var result = await RunAsync(ledger => ledger.TransferAsync(Transfer(checking, savings, 25m) with { Note = "Monthly savings" }, cancellationToken));
 
         Assert.Equal("Transfer to Test Checking: Monthly savings", result.Entry.Description);
         await AssertLedgerConsistentAsync([checking, savings], cancellationToken);
@@ -192,8 +190,7 @@ public sealed class LedgerServiceTests(BankingApiFactory factory)
         var receiver = await DatabaseTestData.CreateAccountAsync(factory, cancellationToken);
         await RunAsync(ledger => ledger.DepositAsync(Request(sender, 100m), cancellationToken));
 
-        var error = await Assert.ThrowsAsync<BusinessRuleException>(() =>
-            RunAsync(ledger => ledger.TransferAsync(Transfer(sender, receiver, 100.01m), cancellationToken)));
+        var error = await Assert.ThrowsAsync<BusinessRuleException>(() => RunAsync(ledger => ledger.TransferAsync(Transfer(sender, receiver, 100.01m), cancellationToken)));
 
         Assert.Equal("Insufficient funds for this transfer.", error.Message);
         Assert.Equal(100m, await GetBalanceAsync(sender, cancellationToken));
@@ -213,10 +210,8 @@ public sealed class LedgerServiceTests(BankingApiFactory factory)
         await FreezeAsync(frozen, cancellationToken);
         var unknown = frozen with { AccountNumber = "0000000000" };
 
-        var toFrozen = await Assert.ThrowsAsync<BusinessRuleException>(() =>
-            RunAsync(ledger => ledger.TransferAsync(Transfer(sender, frozen, 10m), cancellationToken)));
-        var toUnknown = await Assert.ThrowsAsync<BusinessRuleException>(() =>
-            RunAsync(ledger => ledger.TransferAsync(Transfer(sender, unknown, 10m), cancellationToken)));
+        var toFrozen = await Assert.ThrowsAsync<BusinessRuleException>(() => RunAsync(ledger => ledger.TransferAsync(Transfer(sender, frozen, 10m), cancellationToken)));
+        var toUnknown = await Assert.ThrowsAsync<BusinessRuleException>(() => RunAsync(ledger => ledger.TransferAsync(Transfer(sender, unknown, 10m), cancellationToken)));
 
         Assert.Equal(toUnknown.Message, toFrozen.Message);
         Assert.Equal(100m, await GetBalanceAsync(sender, cancellationToken));
@@ -231,8 +226,7 @@ public sealed class LedgerServiceTests(BankingApiFactory factory)
         var account = await DatabaseTestData.CreateAccountAsync(factory, cancellationToken);
         await RunAsync(ledger => ledger.DepositAsync(Request(account, 50m), cancellationToken));
 
-        var error = await Assert.ThrowsAsync<BusinessRuleException>(() =>
-            RunAsync(ledger => ledger.TransferAsync(Transfer(account, account, 10m), cancellationToken)));
+        var error = await Assert.ThrowsAsync<BusinessRuleException>(() => RunAsync(ledger => ledger.TransferAsync(Transfer(account, account, 10m), cancellationToken)));
 
         Assert.Equal("Choose a different account to transfer to.", error.Message);
         Assert.Equal(50m, await GetBalanceAsync(account, cancellationToken));
@@ -248,11 +242,9 @@ public sealed class LedgerServiceTests(BankingApiFactory factory)
         var thief = await DatabaseTestData.CreateAccountAsync(factory, cancellationToken);
         await RunAsync(ledger => ledger.DepositAsync(Request(victim, 100m), cancellationToken));
 
-        // The thief names the victim's account as the source and their own as the destination.
         var theft = Transfer(victim, thief, 100m) with { UserId = thief.OwnerId };
 
-        await Assert.ThrowsAsync<AccountNotFoundException>(() =>
-            RunAsync(ledger => ledger.TransferAsync(theft, cancellationToken)));
+        await Assert.ThrowsAsync<AccountNotFoundException>(() => RunAsync(ledger => ledger.TransferAsync(theft, cancellationToken)));
 
         Assert.Equal(100m, await GetBalanceAsync(victim, cancellationToken));
     }
@@ -268,9 +260,6 @@ public sealed class LedgerServiceTests(BankingApiFactory factory)
         await RunAsync(ledger => ledger.DepositAsync(Request(alice, 100m), cancellationToken));
         await RunAsync(ledger => ledger.DepositAsync(Request(ben, 100m), cancellationToken));
 
-        // Forty transfers at once, half in each direction. Without ordered locking, opposing
-        // pairs deadlock; SQL Server would kill one with error 1205, which this test doesn't
-        // catch, so any deadlock fails it.
         await Task.WhenAll(Enumerable.Range(0, 20).SelectMany(_ => new[]
         {
             TryTransferAsync(alice, ben, 10m, cancellationToken),

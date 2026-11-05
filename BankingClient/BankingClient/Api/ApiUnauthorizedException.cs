@@ -1,8 +1,7 @@
 namespace BankingClient.Api;
 
 /// <summary>
-/// The API refused the session's access token: it expired, or the user signed out elsewhere,
-/// which revokes every token. Handled globally by ApiUnauthorizedExceptionFilter.
+/// An exception that is thrown when the banking API rejects the session's access token, indicating that the user is not authorized to perform the requested operation. This exception can be used to handle unauthorized access scenarios in the client application, such as prompting the user to log in again or displaying an appropriate error message.
 /// </summary>
 public sealed class ApiUnauthorizedException : Exception
 {

@@ -7,9 +7,9 @@ using Microsoft.AspNetCore.Authentication;
 namespace BankingClient.Api;
 
 /// <summary>
-/// Attaches the signed-in user's API token, read from their encrypted session cookie, to
-/// outgoing API calls. Requests that already carry a token (sign-in) are left alone.
+/// A delegating handler that adds a bearer token to outgoing HTTP requests if the request does not already have an authorization header. The token is retrieved from the current HTTP context's authentication session, allowing the banking API client to authenticate requests on behalf of the signed-in user.
 /// </summary>
+/// <param name="httpContextAccessor"></param>
 public sealed class BearerTokenHandler(IHttpContextAccessor httpContextAccessor) : DelegatingHandler
 {
     protected override async Task<HttpResponseMessage> SendAsync(

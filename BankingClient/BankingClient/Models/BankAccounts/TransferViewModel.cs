@@ -8,8 +8,7 @@ using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 namespace BankingClient.Models.BankAccounts;
 
 /// <summary>
-/// The transfer form. The source account and the destination choices come from the server,
-/// never from the posted form; only the customer's own inputs are bound.
+/// Provides data for the transfer view, including the source account, destination options, and transfer details.
 /// </summary>
 public sealed class TransferViewModel
 {
@@ -17,7 +16,6 @@ public sealed class TransferViewModel
     [ValidateNever]
     public AccountResponse Account { get; set; } = null!;
 
-    /// <summary>The customer's other active accounts, for "Between my accounts".</summary>
     [BindNever]
     [ValidateNever]
     public IReadOnlyList<AccountResponse> DestinationOptions { get; set; } = [];

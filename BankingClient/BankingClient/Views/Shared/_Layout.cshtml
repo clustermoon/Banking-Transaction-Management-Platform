@@ -11,7 +11,7 @@
 <body class="d-flex flex-column min-vh-100">
     <header class="site-header">
         <nav class="d-flex flex-wrap align-items-center gap-3 py-3 px-4" aria-label="Main">
-            <a class="brand d-flex align-items-center gap-2 me-auto" asp-controller="@(User.Identity?.IsAuthenticated == true ? "Dashboard" : "Home")" asp-action="Index">
+            <a class="brand d-flex align-items-center gap-2 me-auto" asp-controller="Home" asp-action="Index">
                 <img src="~/images/bank-logo.svg" alt="" width="40" height="40" />
                 Avenor
             </a>

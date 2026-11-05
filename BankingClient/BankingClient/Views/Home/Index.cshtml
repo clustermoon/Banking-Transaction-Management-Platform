@@ -1,15 +1,12 @@
 @{
     ViewData["Title"] = "Home";
-    var signedIn = User.Identity?.IsAuthenticated == true;
-    var openController = signedIn ? "BankAccounts" : "Account";
-    var openAction = signedIn ? "Open" : "Register";
 }
 
 <section class="hero">
     <div class="container">
         <h1>Your Financial Future, Our Priority</h1>
         <p class="lead mb-4">Secure. Simple. Built for you.</p>
-        <a class="btn btn-primary btn-lg me-2" asp-controller="@openController" asp-action="@openAction">Open an account</a>
+        <a class="btn btn-primary btn-lg me-2" asp-controller="Account" asp-action="Register">Open an account</a>
         <a class="btn btn-outline-primary btn-lg" href="#features">Learn more</a>
     </div>
 </section>

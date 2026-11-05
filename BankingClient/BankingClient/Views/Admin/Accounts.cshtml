@@ -1,0 +1,89 @@
+@model AdminAccountsViewModel
+@{
+    ViewData["Title"] = "Accounts";
+}
+
+<div class="page-surface">
+    <div class="container page-content">
+        <p class="eyebrow">Operations</p>
+        <h1 class="page-title">Accounts</h1>
+        <p class="page-subtitle">Every customer account. Choose one to freeze, unfreeze, or close it.</p>
+
+        <div class="row g-4 mb-4">
+            <div class="col-md-4">
+                <div class="panel stat-card">
+                    <span class="icon-tile"><i class="bi bi-check-circle" aria-hidden="true"></i></span>
+                    <div>
+                        <p class="stat-label">Active</p>
+                        <p class="stat-value">@Model.ActiveCount</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="panel stat-card">
+                    <span class="icon-tile"><i class="bi bi-snow" aria-hidden="true"></i></span>
+                    <div>
+                        <p class="stat-label">Frozen</p>
+                        <p class="stat-value">@Model.FrozenCount</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="panel stat-card">
+                    <span class="icon-tile"><i class="bi bi-x-circle" aria-hidden="true"></i></span>
+                    <div>
+                        <p class="stat-label">Closed</p>
+                        <p class="stat-value">@Model.ClosedCount</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <section class="panel panel-body" aria-labelledby="all-accounts">
+            <div class="panel-header">
+                <h2 id="all-accounts" class="panel-title mb-0">All accounts</h2>
+                <a class="link-arrow" asp-action="Audit">
+                    Audit log <i class="bi bi-arrow-right" aria-hidden="true"></i>
+                </a>
+            </div>
+
+            <div class="table-scroll">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th scope="col">Owner</th>
+                            <th scope="col">Account</th>
+                            <th scope="col">Type</th>
+                            <th scope="col">Status</th>
+                            <th scope="col" class="numeric">Balance</th>
+                            <th scope="col"><span class="visually-hidden">Actions</span></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var account in Model.Accounts)
+                        {
+                            <tr>
+                                <td>
+                                    <span class="cell-strong">@account.OwnerName</span>
+                                    <span class="cell-subtext">@account.OwnerEmail</span>
+                                </td>
+                                <td>
+                                    <span class="cell-strong">@account.Name</span>
+                                    <span class="cell-subtext">@account.MaskedNumber</span>
+                                </td>
+                                <td>@account.Type</td>
+                                <td><partial name="_AccountStatus" model="account.Status" /></td>
+                                <td class="numeric cell-strong">@account.Balance.ToString("C")</td>
+                                <td class="text-end">
+                                    <a class="btn btn-outline-primary btn-sm" asp-action="Manage" asp-route-id="@account.Id">
+                                        Manage<span class="visually-hidden"> @account.Name for @account.OwnerName</span>
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </div>
+</div>
