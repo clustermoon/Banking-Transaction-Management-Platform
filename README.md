@@ -10,8 +10,8 @@ This repository was intentionally created using very limited to no external help
 
 A full-stack banking and transaction management platform built with ASP.NET Core, Entity Framework Core, and SQL Server. Customers will manage checking and savings accounts, move money, and review their history, while administrators freeze and close accounts under an audit trail.
 
-<img src="images/Setup.gif" width=400>
-<img src="images/Client.gif" width=400>
+<img src="images/Setup.gif" width=800>
+<img src="images/Client.gif" width=800>
 
 ## Highlights
 
